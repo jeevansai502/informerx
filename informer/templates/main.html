@@ -1,0 +1,863 @@
+<html>
+<head>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="../static/mdl/material.min.css">
+
+<title>InformerX</title>
+
+    <!-- Bootstrap CSS -->   
+<link rel="stylesheet" href="../static/bootstrap-4.0.0-alpha.6-dist/css/bootstrap.min.css">
+
+<script>
+
+function fetch_users(name){
+
+	$.ajax({
+		type: 'POST',	
+		url: "/users/",
+		data: { "name": name , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+		success: function(result){
+			
+			alert("B");
+			var s = '<ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect" for="' + name + '">\n'
+			var s1 = document.getElementById("usersmenu").innerHTML
+			
+			for( i=0 ; i < result.data.length ; i++){
+				
+				s += '<li class="mdl-menu__item">' + result.data[i] + '</li>\n'							
+			}
+			s += '</ul>\n'
+		
+			alert(s1 + "\n" + s)
+			
+			document.getElementById("usersmenu").innerHTML = s1 + "\n" + s
+		
+		}
+		
+		});
+
+}
+
+
+function add_group(name){
+	document.getElementById("hidden_group_email").value = name
+	document.getElementById("hidden_group_msg").value = name
+	document.getElementById("hidden_group_call").value = name
+}
+
+
+function show_email_modal(id){
+	$.ajax({
+		type: 'POST',	
+		url: "/emaildata/",
+		data: { "id": id , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+		success: function(result){
+			data = result.data
+			group = result.group
+			document.getElementById("history_group_email").value = group
+			fields = ["history_communication_type","history_incident_number","history_priority","history_region","history_status","history_incident_opened","history_incident_duration","history_what_happened","history_business_impact","history_service_impact","history_key_groups_and_people_involved","history_what_we_discovered","history_what_finally_fixed_the_issue","history_post_recovery_action_items","history_design_issues","history_chronology_of_the_incident","history_flagged_for_reliability","history_date_and_time_flagged_for_reliability","history_reliability_record_number","history_time_down","history_date_and_time_issue_resolved","history_did_we_receive_an_alert","history_date_and_time_alert_received"]
+
+			for (i=0;i<fields.length;i++){
+				document.getElementById(fields[i]).value = data[i]
+			}
+		}
+		
+		});
+
+
+}
+
+function show_msg_modal(group,message){
+
+	document.getElementById("history_group_msg").innerHTML = group
+	document.getElementById("history_msgdata").innerHTML = message
+
+}
+
+function show_call_modal(group,message){
+
+	document.getElementById("history_group_call").innerHTML = group
+	document.getElementById("history_calldata").innerHTML = message
+
+}
+
+
+function email_load_more(){		
+		$('#email_load_more_btn').addClass("disabled")
+		lim = document.getElementById("hidden_load_email").value
+
+		$.ajax({
+			type: 'POST',	
+			url: "/emailload/",
+			data: { "lim": lim , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+			success: function(result){
+
+				show_email = result.show_email
+				email_load = result.email_load_more
+
+				code = ""
+
+				for ( i = 0;i<show_email.length;i++){
+					id = show_email[i][0]
+					what = show_email[i][1]
+					code += '<tr onclick="show_email_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#emailModal"><td>' + what + '</td></tr>'
+
+				}
+				
+				document.getElementById("email_tbody").innerHTML += code
+				document.getElementById("hidden_load_email").value = email_load
+ 				$('#email_load_more_btn').removeClass("disabled");
+			}
+		
+		});
+		
+}
+
+function msg_load_more(){
+	$('#msg_load_more_btn').addClass("disabled")
+
+		lim = document.getElementById("hidden_load_msg").value
+
+		$.ajax({
+			type: 'POST',	
+			url: "/msgload/",
+			data: { "lim": lim , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+			success: function(result){
+
+				show_message = result.show_message
+				msg_load_more = result.msg_load_more
+
+				code = ""
+
+				for ( i = 0;i<show_message.length;i++){
+					id = show_message[i][0]
+					message = show_message[i][1]
+					code += '<tr onclick="show_msg_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#msgModal"><td>' + message + '</td></tr>'
+				}
+				
+				document.getElementById("msg_tbody").innerHTML += code
+				document.getElementById("msg_load_more").value = msg_load_more
+ 				$('#msg_load_more_btn').removeClass("disabled");	
+			}
+		
+		});
+		
+}
+
+
+function call_load_more(){
+
+		$('#call_load_more_btn').addClass("disabled")
+		lim = document.getElementById("hidden_load_call").value
+
+		$.ajax({
+			type: 'POST',	
+			url: "/callload/",
+			data: { "lim": lim , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+			success: function(result){
+
+				show_call = result.show_call
+				call_load_more = result.call_load_more
+
+				code = ""
+
+				for ( i = 0;i<show_call.length;i++){
+					id = show_call[i][0]
+					message = show_call[i][1]
+					code += '<tr onclick="show_call_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#callModal"><td>' + message + '</td></tr>'
+				}
+				
+				document.getElementById("call_tbody").innerHTML += code
+				document.getElementById("call_load_more").value = call_load_more
+ 				$('#call_load_more_btn').removeClass("disabled");
+			}
+		
+		});
+		
+}
+
+
+function email_history_submit(){
+
+		$('#email_history_submit_btn').addClass("disabled")
+
+		history_fields = ["history_group_email","history_communication_type","history_incident_number","history_priority","history_region","history_status","history_incident_opened","history_incident_duration","history_what_happened","history_business_impact","history_service_impact","history_key_groups_and_people_involved","history_what_we_discovered","history_what_finally_fixed_the_issue","history_post_recovery_action_items","history_design_issues","history_chronology_of_the_incident","history_flagged_for_reliability","history_date_and_time_flagged_for_reliability","history_reliability_record_number","history_time_down","history_date_and_time_issue_resolved","history_did_we_receive_an_alert","history_date_and_time_alert_received"]
+
+		fields = ["hidden_group_email","communication_type","incident_number","priority","region","status","incident_opened","incident_duration","what_happened","business_impact","service_impact","key_groups_and_people_involved","what_we_discovered","what_finally_fixed_the_issue","post_recovery_action_items","design_issues","chronology_of_the_incident","flagged_for_reliability","date_and_time_flagged_for_reliability","reliability_record_number","time_down","date_and_time_issue_resolved","did_we_receive_an_alert","date_and_time_alert_received"]
+
+
+		s = "{"
+
+		s += '"csrfmiddlewaretoken":' +  '"' + "{{ csrf_token }}" + '",'
+
+		for (i=0;i<fields.length;i++){
+			if (i == fields.length -1){
+				s += '"' + fields[i] + '":"' + document.getElementById( history_fields[i]).value + '"}'
+				break				
+			}
+
+			s += '"' + fields[i] + '":"' + document.getElementById(history_fields[i]).value + '",'
+		}
+
+		$.ajax({
+			type: 'POST',	
+			url: "/email/",
+			data: JSON.parse(s),
+			success: function(result){
+				document.getElementById("email_history_result").innerHTML = result.result
+				$('#email_history_submit_btn').removeClass("disabled");
+			}
+		});
+
+}
+
+
+function msg_history_submit(){
+
+		$('#msg_history_submit_btn').addClass("disabled")
+		document.getElementById("msg_history_result").innerHTML = ""
+
+		hidden_group_msg = document.getElementById("history_group_msg").innerText
+		msgdata =  document.getElementById("history_msgdata").innerText
+
+		$.ajax({
+			type: 'POST',	
+			url: "/message/",
+			data: { "csrfmiddlewaretoken": "{{ csrf_token }}" ,"hidden_group_msg":hidden_group_msg ,"msgdata": msgdata},
+			success: function(result){
+				document.getElementById("msg_history_result").innerHTML = result.result
+				$('#msg_history_submit_btn').removeClass("disabled");
+			}
+		
+		});
+
+		
+}
+
+function call_history_submit(){
+
+		$('#calll_history_submit_btn').addClass("disabled")
+		document.getElementById("call_history_result").innerHTML = ""
+		hidden_group_call = document.getElementById("history_group_call").innerText
+		calldata =  document.getElementById("history_calldata").innerText
+
+		$.ajax({
+			type: 'POST',	
+			url: "/call/",
+			data: { "csrfmiddlewaretoken": '{{ csrf_token }}' , },
+			success: function(result){
+				document.getElementById("call_history_result").innerHTML = result.result
+				$('#call_history_submit_btn').removeClass("disabled");
+			}
+	
+		});
+		
+
+}
+
+
+function email_submit(){
+
+		$('#email_submit_btn').addClass("disabled")
+		document.getElementById("email_result").innerHTML = ""
+		
+
+		fields = ["hidden_group_email","communication_type","incident_number","priority","region","status","incident_opened","incident_duration","what_happened","business_impact","service_impact","key_groups_and_people_involved","what_we_discovered","what_finally_fixed_the_issue","post_recovery_action_items","design_issues","chronology_of_the_incident","flagged_for_reliability","date_and_time_flagged_for_reliability","reliability_record_number","time_down","date_and_time_issue_resolved","did_we_receive_an_alert","date_and_time_alert_received"]
+
+		s = "{"
+
+		s += '"csrfmiddlewaretoken":' +  '"' + "{{ csrf_token }}" + '",'
+
+		for (i=0;i<fields.length;i++){
+			if (i == fields.length -1){
+				s += '"' + fields[i] + '":"' + document.getElementById(fields[i]).value + '"}'
+				break				
+			}
+
+			s += '"' + fields[i] + '":"' + document.getElementById(fields[i]).value + '",'
+		}
+
+
+		$.ajax({
+			type: 'POST',	
+			url: "/email/",
+			data: JSON.parse(s),
+			success: function(result){
+				document.getElementById("email_result").innerHTML = result.result
+				$('#email_submit_btn').removeClass("disabled");
+			}
+		});
+
+		
+}
+
+function msg_submit(){
+
+		$('#msg_submit_btn').addClass("disabled")
+		document.getElementById("msg_result").innerHTML = ""
+
+		hidden_group_msg = document.getElementById("hidden_group_msg").innerText
+		msgdata =  document.getElementById("msgdata").innerText
+
+		$.ajax({
+			type: 'POST',	
+			url: "/message/",
+			data: { "csrfmiddlewaretoken": "{{ csrf_token }}" ,"hidden_group_msg":hidden_group_msg ,"msgdata": msgdata},
+			success: function(result){
+				document.getElementById("msg_result").innerHTML = result.result
+				$('#msg_submit_btn').removeClass("disabled");
+			}
+		});	
+		
+}
+
+
+function call_submit(){
+		
+		$('#call_submit_btn').addClass("disabled")
+		document.getElementById("call_result").innerHTML = ""
+		hidden_group_call = document.getElementById("hidden_group_call").innerText
+		calldata =  document.getElementById("calldata").innerText
+
+		$.ajax({
+			type: 'POST',	
+			url: "/call/",
+			data: { "csrfmiddlewaretoken": '{{ csrf_token }}' , "hidden_group_call":hidden_group_call ,"calldata": calldata},
+			success: function(result){
+				document.getElementById("call_result").innerHTML = result.result
+				$('#call_submit_btn').removeClass("disabled");
+			}
+		});	
+		
+		
+}
+
+
+$(window).on('shown.bs.modal', function() { 
+    document.getElementById("call_result").innerHTML = ""
+    document.getElementById("msg_result").innerHTML = ""
+    document.getElementById("email_result").innerHTML = ""
+    document.getElementById("email_history_result").innerHTML = ""
+    document.getElementById("msg_history_result").innerHTML = ""
+    document.getElementById("call_history_result").innerHTML = ""
+
+});
+
+
+</script>
+
+<style>
+/*
+.demo-layout-transparent {
+  background: url('../static/img/wood.jpeg') center / cover;
+}*/
+.demo-layout-transparent .mdl-layout__header,
+.demo-layout-transparent .mdl-layout__drawer-button {
+  /* This background is dark, so we set text to white. Use 87% black instead if
+     your background is light. */
+  color: white;
+}
+</style>
+
+</head>
+<body class="mdl-color--brown-300">
+
+<!-- layout Container-->
+<div class="demo-layout-transparent mdl-layout mdl-js-layout mdl-layout--fixed-header ">
+
+  <!-- Scrolling Header  mdl-color--grey-700-->
+  <header class="mdl-layout__header mdl-layout__header--scroll mdl-layout__header--transparent">
+    
+    <div class="mdl-layout__header-row">
+	
+      <!-- Title of the Header -->
+      <span class="mdl-layout-title"></span>
+	  
+      <!-- Spacer used to align navigation towards right -->
+      <div class="mdl-layout-spacer"></div>
+	  
+      <nav class="mdl-navigation">
+      <form action="/logout/" method="get">
+      <button type="submit" class="mdl-button mdl-js-button mdl-button--raised">Logout</button>      
+      </form>      
+      </nav>            
+                  
+    </div>
+  </header>
+  
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title"></span>
+    <nav class="mdl-navigation">
+      
+      {% for group in groups %}
+      {% for val in group %}
+      <a class="mdl-navigation__link" id="{{ val }}" name="{{ val }}" href="" onclick="add_group('{{ val }}')" data-toggle="modal" data-target="#msgemailcallModal">{{ val }}</a>
+      {% endfor %}
+      {% endfor %}
+      
+      <div id="usersmenu">
+      </div> 
+      
+    </nav>
+  </div>
+  
+  <main class="mdl-layout__content page-content container mb-5 ml-5 mr-5 pb-5 pl-5 pr-5">
+    
+      <div class = "mdl-tabs mdl-js-tabs">
+              
+               <div class = "mdl-tabs__tab-bar">
+                  <a href = "#tab1-history" class = "mdl-tabs__tab mdl-color-text--blue-grey-300 is-active">Email</a>
+                  <a href = "#tab2-history" class = "mdl-tabs__tab mdl-color-text--blue-grey-300">Message</a>
+                  <a href = "#tab3-history" class = "mdl-tabs__tab mdl-color-text--blue-grey-300">Call</a>
+               </div>
+               
+            <div class = "mdl-tabs__panel is-active" id = "tab1-history">    
+		    <table class="table table-hover" width="800" style="color: white">
+		    	<tbody id="email_tbody" name="email_tbody">
+				{% for id,what in show_email %}
+				<tr onclick="show_email_modal('{{ id }}')" id="{{ id }}" name="{{ id }}" data-toggle="modal" data-target="#emailModal"><td>{{ what }}</td></tr>
+				{% endfor %}
+				</tbody>
+		    </table>
+		    <input id="hidden_load_email" name="hidden_load_email" type="hidden" value="{{ email_load_more }}"/>
+		    <button type="button" class="btn" id="email_load_more_btn" name="email_load_more_btn" onclick='email_load_more()'>Load More</button>
+    		</div>
+    		
+    		<div class = "mdl-tabs__panel" id = "tab2-history">    
+		    <table class="table table-hover" width="1200">
+		    	<tbody id="msg_tbody" name="msg_tbody">
+		    	{% for id,message in show_message %}
+		    	<tr onclick="show_msg_modal('{{ id }}', '{{ message }}')" id="{{ id }}" name="{{ id }}" data-toggle="modal" data-target="#msgModal"><td>{{ message }}</td></tr>
+		    	{% endfor %}
+		    	</tbody>
+		    </table>
+		    <input id="hidden_load_msg" name="hidden_load_msg" type="hidden" value="{{ msg_load_more }}"/>
+		    <button type="button" class="btn" id="msg_load_more_btn" name="msg_load_more_btn" onclick='msg_load_more()'>Load More</button>
+    		</div>	
+
+    		<div class = "mdl-tabs__panel" id = "tab3-history">
+    		<table class="table table-hover" width="1200">
+		    	<tbody id="call_tbody" name="call_tbody">
+		    	{% for id,message in show_call %}
+		    	<tr onclick="show_call_modal('{{ id }}', '{{ message }}')" id="{{ id }}" name="{{ id }}" data-toggle="modal" data-target="#callModal"><td>{{ message }}</td></tr>
+		    	{% endfor %}
+		    	</tbody>
+		    </table>
+		    <input id="hidden_load_call" name="hidden_load_call" type="hidden" value="{{ call_load_more }}"/>
+		    <button type="button" class="btn" id="call_load_more_btn" name="call_load_more_btn" onclick="call_load_more()">Load More</button>
+    		</div>
+
+
+    </div>
+  </main>
+  
+</div>
+
+
+
+<div class="modal fade" id="emailModal" tabindex="-1" role="dialog" aria-labelledby="mailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+
+		<form action="/emailhistory/" method="POST">
+		    {% csrf_token %}
+		    <div class="modal-content pl-2">
+		    <div id="email_history_result"></div>
+		      <div class="modal-header">
+			<h5 class="modal-title" id="mailModalLabel">Email</h5>
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			  <span aria-hidden="true">&times;</span>
+			</button>
+		      </div>
+		      <div class="modal-body">
+		       
+		      <input id="history_group_email" name="history_group_email" type="hidden" value=""/>
+		   
+			<div class="form-group row">
+		    	<label for="history_communication_type" class="col-md-4">Communication Type:</label>
+		    	<input type="text" class="form-control col-md-6" id="history_communication_type" name="history_communication_type">
+		  	</div>
+
+			<div class="form-group row">
+		    	<label for="history_incident_number" class="col-md-2">Incident Number:</label>
+		    	<input type="text" class="form-control col-md-4" id="history_incident_number" name="history_incident_number"/>
+		    	
+		    	<label class="col-md-2" for="history_priority">Priority:</label>
+		    	<input class="form-control col-md-4" type="text" id="history_priority" name="history_priority"/>
+		  	</div>
+		      
+		      
+		      <div class="form-group row">
+		      	<label class="col-md-2" for="history_region">Region/Location:</label>
+			<input class="form-control col-md-4" type="text" id="history_region" name="history_region"/>
+			
+			<label class="col-md-2" for="history_status">Status:</label>
+			<input class="form-control col-md-4" type="text" id="history_status" name="history_status"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-2" for="history_incident_opened">Incident Opened:</label>
+			<input class="form-control col-md-4" type="text" id="history_incident_opened" name="history_incident_opened"/>
+			
+			<label class="col-md-2" for="history_incident_duration">Incident Duration:</label>
+		    <input class="form-control col-md-4" type="text" id="history_incident_duration" name="history_incident_duration"/>
+		      </div>
+		      
+		      <div class="form-group row">
+		      	<label class="col-md-4" for="history_what_happened">What Happened:</label>
+		      	<input class="form-control col-md-6" type="text" id="history_what_happened" name="history_what_happened"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="history_business_impact">Business Impact</label>
+			<input class="form-control col-md-6" type="text" id="history_business_impact" name="history_business_impact"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="history_service_impact">Service Impact</label>
+			<input class="form-control col-md-6" type="text" id="history_service_impact" name="history_service_impact"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="history_key_groups_and_people_involved">Key Groups and People Involved:</label>
+			<input class="form-control col-md-6" type="text" id="history_key_groups_and_people_involved" name="history_key_groups_and_people_involved"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="history_what_we_discovered">What We Discovered:</label>
+			<input class="form-control col-md-6" type="text" id="history_what_we_discovered" name="history_what_we_discovered"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="history_what_finally_fixed_the_issue">What finally fixed the issue:</label>
+			<input class="form-control col-md-6" type="text" id="history_what_finally_fixed_the_issue" name="history_what_finally_fixed_the_issue"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="history_post_recovery_action_items">Post Recovery Action Items:</label>
+			<input class="form-control col-md-6" type="text" id="history_post_recovery_action_items" name="history_post_recovery_action_items"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="history_design_issues">Design Issues:</label>
+			<input class="form-control col-md-6" type="text" id="history_design_issues" name="history_design_issues"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="history_chronology_of_the_incident">Chronology of the incident</label>
+			<input class="form-control col-md-6" type="text" id="history_chronology_of_the_incident" name="history_chronology_of_the_incident"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-2" for="history_flagged_for_reliability">Flagged for Reliability:</label>
+			<input class="form-control col-md-4" type="text" id="history_flagged_for_reliability" name="history_flagged_for_reliability"/>
+			
+			<label class="col-md-2" for="history_date_and_time_flagged_for_reliability">Date and Time Flagged for Reliability:</label>
+			<input class="form-control col-md-3" type="text" id="history_date_and_time_flagged_for_reliability" name="history_date_and_time_flagged_for_reliability"/>
+		      </div>
+		   
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="history_reliability_record_number">Reliability Record Number:</label>
+			<input class="form-control col-md-6" type="text" id="history_reliability_record_number" name="history_reliability_record_number"/>
+		      </div>
+		      
+		      <div class="form-group row">
+		      	<label class="col-md-2" for="history_time_down">Time Down:</label>
+			<input class="form-control col-md-4" type="text" id="history_time_down" name="history_time_down"/>
+			
+			<label class="col-md-2" for="history_date_and_time_issue_resolved">Date & Time Issue Resolved:</label>
+			<input class="form-control col-md-3" type="text" id="history_date_and_time_issue_resolved" name="history_date_and_time_issue_resolved"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-2" for="history_did_we_receive_an_alert">Did we receive an alert:</label>
+			<input class="form-control col-md-4" type="text" id="history_did_we_receive_an_alert" name="history_did_we_receive_an_alert"/>
+			
+			<label class="col-md-2" for="history_date_and_time_alert_received">Date & Time Alert Received:</label>
+			<input class="form-control col-md-3" type="text" id="history_date_and_time_alert_received" name="history_date_and_time_alert_received"/>
+		      </div>
+		      
+		      </div>
+		      <div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			<button type="button" class="btn btn-primary" id="email_history_submit_btn" name="email_history_submit_btn" onclick="email_history_submit()">Send</button>
+		      </div>
+		    </div>
+		    
+		  </form>      
+ </div>
+</div>
+
+
+<div class="modal fade" id="msgModal" tabindex="-1" role="dialog" aria-labelledby="msgModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+            
+            <form action="/messagehistory/" method="POST">
+		    {% csrf_token %}
+		    <div class="modal-content">
+		    <div id="msg_history_result"></div>
+		      <div class="modal-header">
+			<h5 class="modal-title" id="msgModalLabel">Message</h5>
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			  <span aria-hidden="true">&times;</span>
+			</button>
+		      </div>
+		      <div class="modal-body">
+			
+		       <input id="history_group_msg" name="history_group_msg" type="hidden" value=""/> 
+		       <textarea class="form-control" id="history_msgdata" name="history_msgdata"></textarea> 
+			
+			
+		      </div>
+		      <div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			<button type="button" class="btn btn-primary" id="msg_history_submit_btn" name="msg_history_submit_btn" onclick="msg_history_submit()">Send</button>
+		      </div>
+		    </div>
+		    
+		    </form>	
+ </div>
+</div>
+
+<div class="modal fade" id="callModal" tabindex="-1" role="dialog" aria-labelledby="callModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+            
+            <form action="/call/" method="POST">
+		    {% csrf_token %}
+		    <div class="modal-content">
+		    <div id="call_history_result"></div>
+		      <div class="modal-header">
+			<h5 class="modal-title" id="callModalLabel">Call</h5>
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			  <span aria-hidden="true">&times;</span>
+			</button>
+		      </div>
+		      <div class="modal-body">
+			
+		       <input id="history_group_call" name="history_group_call" type="hidden" value=""/> 
+		       <textarea class="form-control" id="history_calldata" name="history_calldata"></textarea> 
+			
+			
+		      </div>
+		      <div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			<button type="button" class="btn btn-primary"  id="call_history_submit_btn" name="call_history_submit_btn" onclick="call_history_submit()">Send</button>
+		      </div>
+		    </div>
+		    
+		    </form>	
+ </div>
+</div>
+
+
+
+<div class="modal fade" id="msgemailcallModal" tabindex="-1" role="dialog"  aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+	
+	     <div class = "mdl-tabs mdl-js-tabs">
+              
+               <div class = "mdl-tabs__tab-bar">
+                  <a href = "#tab1-panel" class = "mdl-tabs__tab mdl-color-text--blue-grey-300 is-active">Email</a>
+                  <a href = "#tab2-panel" class = "mdl-tabs__tab mdl-color-text--blue-grey-300">Message</a>
+                  <a href = "#tab3-panel" class = "mdl-tabs__tab mdl-color-text--blue-grey-300">Call</a>
+               </div>
+            
+               <div class = "mdl-tabs__panel is-active" id = "tab1-panel">
+
+
+		<form action="/email/" method="POST">
+		    {% csrf_token %}
+		    <div class="modal-content">
+               <div id="email_result"></div>
+		      <div class="modal-header">
+			<h5 class="modal-title" id="mailModalLabel">Email</h5>
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			  <span aria-hidden="true">&times;</span>
+			</button>
+		      </div>
+		      <div class="modal-body">
+		       
+		      <input id="hidden_group_email" name="hidden_group_email" type="hidden" value=""/>
+		   
+			<div class="form-group row">
+		    	<label for="communication_type" class="col-md-4">Communication Type:</label>
+		    	<input type="text" class="form-control col-md-6" id="communication_type" name="communication_type">
+		  	</div>
+
+			<div class="form-group row">
+		    	<label for="incident_number" class="col-md-2">Incident Number:</label>
+		    	<input type="text" class="form-control col-md-4" id="incident_number" name="incident_number"/>
+		    	
+		    	<label class="col-md-2" for="priority">Priority:</label>
+		    	<input class="form-control col-md-4" type="text" id="priority" name="priority"/>
+		  	</div>
+		      
+		      
+		      <div class="form-group row">
+		      	<label class="col-md-2" for="region">Region/Location:</label>
+			<input class="form-control col-md-4" type="text" id="region" name="region"/>
+			
+			<label class="col-md-2" for="status">Status:</label>
+			<input class="form-control col-md-4" type="text" id="status" name="status"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-2" for="incident_opened">Incident Opened:</label>
+			<input class="form-control col-md-4" type="text" id="incident_opened" name="incident_opened"/>
+			
+			<label class="col-md-2" for="incident_duration">Incident Duration:</label>
+			<input class="form-control col-md-4" type="text" id="incident_duration" name="incident_duration"/>
+		      </div>
+		      
+		      <div class="form-group row">
+		      	<label class="col-md-4" for="what_happened">What Happened:</label>
+		      	<input class="form-control col-md-6" type="text" id="what_happened" name="what_happened"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="business_impact">Business Impact</label>
+			<input class="form-control col-md-6" type="text" id="business_impact" name="business_impact"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="service_impact">Service Impact</label>
+			<input class="form-control col-md-6" type="text" id="service_impact" name="service_impact"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="key_groups_and_people_involved">Key Groups and People Involved:</label>
+			<input class="form-control col-md-6" type="text" id="key_groups_and_people_involved" name="key_groups_and_people_involved"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="what_we_discovered">What We Discovered:</label>
+			<input class="form-control col-md-6" type="text" id="what_we_discovered" name="what_we_discovered"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="what_finally_fixed_the_issue">What finally fixed the issue:</label>
+			<input class="form-control col-md-6" type="text" id="what_finally_fixed_the_issue" name="what_finally_fixed_the_issue"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="post_recovery_action_items">Post Recovery Action Items:</label>
+			<input class="form-control col-md-6" type="text" id="post_recovery_action_items" name="post_recovery_action_items"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="design_issues">Design Issues:</label>
+			<input class="form-control col-md-6" type="text" id="design_issues" name="design_issues"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="chronology_of_the_incident">Chronology of the incident</label>
+			<input class="form-control col-md-6" type="text" id="chronology_of_the_incident" name="chronology_of_the_incident"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-2" for="flagged_for_reliability">Flagged for Reliability:</label>
+			<input class="form-control col-md-4" type="text" id="flagged_for_reliability" name="flagged_for_reliability"/>
+			
+			<label class="col-md-2" for="date_and_time_flagged_for_reliability">Date and Time Flagged for Reliability:</label>
+			<input class="form-control col-md-4" type="text" id="date_and_time_flagged_for_reliability" name="date_and_time_flagged_for_reliability"/>
+		      </div>
+		   
+		      
+		      <div class="form-group row">
+			<label class="col-md-4" for="reliability_record_number">Reliability Record Number:</label>
+			<input class="form-control col-md-6" type="text" id="reliability_record_number" name="reliability_record_number"/>
+		      </div>
+		      
+		      <div class="form-group row">
+		      	<label class="col-md-2" for="time_down">Time Down:</label>
+			<input class="form-control col-md-4" type="text" id="time_down" name="time_down"/>
+			
+			<label class="col-md-2" for="date_and_time_issue_resolved">Date & Time Issue Resolved:</label>
+			<input class="form-control col-md-4" type="text" id="date_and_time_issue_resolved" name="date_and_time_issue_resolved"/>
+		      </div>
+		      
+		      <div class="form-group row">
+			<label class="col-md-2" for="did_we_receive_an_alert">Did we receive an alert:</label>
+			<input class="form-control col-md-4" type="text" id="did_we_receive_an_alert" name="did_we_receive_an_alert"/>
+			
+			<label class="col-md-2" for="date_and_time_alert_received">Date & Time Alert Received:</label>
+			<input class="form-control col-md-4" type="text" id="date_and_time_alert_received" name="date_and_time_alert_received"/>
+		      </div>
+		      
+		      </div>
+		      <div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			<button type="button" class="btn btn-primary" id="email_submit_btn" name="email_submit_btn" onclick="email_submit">Send</button>
+		      </div>
+		    </div>
+		    
+		  </form>      
+               </div>
+            
+               <div class = "mdl-tabs__panel" id = "tab2-panel">
+               
+                <form action="/message/" method="POST">
+		    	{% csrf_token %}
+		    		<div class="modal-content">
+		      <div id="msg_result"></div>
+		      		<div class="modal-header">
+					<h5 class="modal-title" id="msgModalLabel">Message</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			  		<span aria-hidden="true">&times;</span>
+					</button>
+		      		</div>
+		      		<div class="modal-body">
+			
+		       		<input id="hidden_group_msg" name="hidden_group_msg" type="hidden" value=""/> 
+		       		<textarea class="form-control" id="msgdata" name="msgdata"></textarea> 
+			
+		      		</div>
+		      		<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary" id="msg_submit_btn" name="msg_submit_btn" onclick="msg_submit">Send</button>
+		      		</div>
+		    		</div>
+		    
+		    	</form>	
+               </div>
+            
+               <div class = "mdl-tabs__panel" id = "tab3-panel">
+               
+                <form action="/call/" method="POST">
+		    	{% csrf_token %}
+		    		<div class="modal-content">
+		      <div id="call_result"></div>
+		      		<div class="modal-header">
+					<h5 class="modal-title" id="callModalLabel">Call</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			  		<span aria-hidden="true">&times;</span>
+					</button>
+		      		</div>
+		      		<div class="modal-body">
+			
+		       		<input id="hidden_group_call" name="hidden_group_call" type="hidden" value=""/> 
+		       		<textarea class="form-control" id="calldata" name="calldata"></textarea> 
+			
+		      		</div>
+		      		<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					<button type="Submit" class="btn btn-primary" id="call_submit_btn" name="call_submit_btn" onclick="call_submit">Send</button>
+		      		</div>
+		    		</div>
+		    
+		    	</form>	
+               </div>
+
+            </div>
+
+  </div>
+</div>
+
+ 
+<script src="../static/mdl/material.min.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/bootstrap-4.0.0-alpha.6-dist/js/bootstrap.min.js"></script> 
+
+</body>
+</html>
