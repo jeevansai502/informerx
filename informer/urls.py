@@ -6,8 +6,7 @@ from informer import healthz
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    url(r'^healthz/ready', healthz.ready),
-    url(r'^healthz/alive', healthz.alive),
+    url(r'^health', healthz.health),
     url(r'^$',views.IndexPageView.as_view()),        
     url(r'^logout/$',views.LogoutPageView.as_view()),
     url(r'^login/$',views.LoginPageView.as_view()),
