@@ -11,7 +11,7 @@ from django.utils import timezone
 #from message import Message
 from django.contrib.auth.signals import user_logged_in
 from django.http import HttpResponseRedirect
-from informer.src import message,email
+#from informer.src import message,email
 from django.core.mail import EmailMessage
 from django.http import JsonResponse
 import json
@@ -274,7 +274,8 @@ class CallPageView(TemplateView):
 	def post(self,request):
 		data = request.POST["calldata"]
 		group = request.POST["hidden_group_call"]
-
+		return JsonResponse({"data": "1"})
+		'''
 		print ("WWWWWWWWWW")
 
 		#client = plivo.RestClient(auth_id='MAZWU1NTRJYZJMMGMYYT', auth_token='Zjc3NmY5OTU3MmFjZmMxMTBjYzBkOGJhNzYyNWU4')
@@ -288,8 +289,7 @@ class CallPageView(TemplateView):
 		app_key = "f2af6934-3fc4-4305-a517-daa7cedd3e5b"
 		app_secret = "RleTrmSl0EuafsJJod4lmg=="
 
-
-		values = base64.b64encode({ "method":"ttsCallout", "ttsCallout": { "cli":"46000000000", "destination":"type":"number","endpoint":"460000000001"}, "domain":"pstn", "locale":"en-US", "text":"Hello world"})
+		values = base64.b64encode({ "method":"ttsCallout", "ttsCallout": { "cli":"46000000000", "destination":{"type":"number","endpoint":"460000000001"}, "domain":"pstn", "locale":"en-US","text":"Helloworld"})
 		val = b64bytes.decode('ascii')
 
 		b64bytes = base64.b64encode(('Application:%s:%s' % (app_key, app_secret)).encode())
@@ -322,6 +322,7 @@ class CallPageView(TemplateView):
 		#	t = {}
 		#	t["result"] = "Message sending failed"
 		#	return render(request, 'main.html', t)
+		'''
 
 
 class UsersPageView(TemplateView):  
