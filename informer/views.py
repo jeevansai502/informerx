@@ -47,6 +47,13 @@ class LoginPageView(TemplateView):
 		with connection.cursor() as cursor:
 			original = cursor.execute("SELECT password FROM informer_user_login_details WHERE email=%s",(email,))
 			corr = original.fetchone()
+			print (corr)
+			
+			if corr == None:
+				ln = {}
+				ln["result"] = "Wrong credentials"
+				return render(request, 'login.html',ln)
+			
 			hash_pass = hashlib.md5(password.encode())
 			password = hash_pass.hexdigest()
 			if corr[0] == password:
@@ -87,7 +94,9 @@ class RegisterPageView(TemplateView):
 
 			reg["result"] = "Signup success"
 			return render(request, 'login.html',reg)
-		except:
+		except Exception as e:
+			print (e)
+
 			reg["result"] = "Oops some error occured"
 			return render(request, 'register.html',reg)
 
