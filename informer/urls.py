@@ -15,10 +15,11 @@ urlpatterns = [
     url(r'^email/$',views.EmailPageView.as_view()),
     url(r'^message/$',views.MsgPageView.as_view()),
     url(r'^call/$',views.CallPageView.as_view()),
-    url(r'^users/$',views.UsersPageView.as_view()),
+    #url(r'^users/$',views.UsersPageView.as_view()),
     url(r'emaildata/$',views.EmailData.as_view()),
     url(r'msgdata/$',views.MsgData.as_view()),
     url(r'calldata/$',views.MsgData.as_view()),
     url(r'^emailload/$',views.EmailLoad.as_view()),
     url(r'^msgload/$',views.MsgLoad.as_view()),
+    url(r'^callload/$',views.CallLoad.as_view()),
 ]

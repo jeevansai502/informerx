@@ -11,6 +11,7 @@
 
 <script>
 
+/*
 function fetch_users(name){
 
 	$.ajax({
@@ -38,6 +39,7 @@ function fetch_users(name){
 		});
 
 }
+*/
 
 
 function add_group(name){
@@ -68,17 +70,35 @@ function show_email_modal(id){
 
 }
 
-function show_msg_modal(group,message){
-
-	document.getElementById("history_group_msg").innerHTML = group
-	document.getElementById("history_msgdata").innerHTML = message
+function show_msg_modal(id){
+	$.ajax({
+		type: 'POST',	
+		url: "/msgdata/",
+		data: { "id": id , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+		success: function(result){
+			data = result.data
+			group = result.group
+			document.getElementById("history_group_msg").value = group
+			document.getElementById("history_msgdata").innerHTML = data
+		}
+		
+		});
 
 }
 
-function show_call_modal(group,message){
-
-	document.getElementById("history_group_call").innerHTML = group
-	document.getElementById("history_calldata").innerHTML = message
+function show_call_modal(id){
+	$.ajax({
+		type: 'POST',	
+		url: "/calldata/",
+		data: { "id": id , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+		success: function(result){
+			data = result.data
+			group = result.group
+			document.getElementById("history_group_call").value = group
+			document.getElementById("history_calldata").innerHTML = data
+		}
+		
+		});
 
 }
 
@@ -101,7 +121,7 @@ function email_load_more(){
 				for ( i = 0;i<show_email.length;i++){
 					id = show_email[i][0]
 					what = show_email[i][1]
-					code += '<tr onclick="show_email_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#emailModal"><td>' + what + '</td></tr>'
+					code += '<tr  style="white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;"   onclick="show_email_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#emailModal"><td>' + what + '</td></tr>'
 
 				}
 				
@@ -133,7 +153,7 @@ function msg_load_more(){
 				for ( i = 0;i<show_message.length;i++){
 					id = show_message[i][0]
 					message = show_message[i][1]
-					code += '<tr onclick="show_msg_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#msgModal"><td>' + message + '</td></tr>'
+					code += '<tr style="white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;"  onclick="show_msg_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#msgModal"><td>' + message + '</td></tr>'
 				}
 				
 				document.getElementById("msg_tbody").innerHTML += code
@@ -165,7 +185,7 @@ function call_load_more(){
 				for ( i = 0;i<show_call.length;i++){
 					id = show_call[i][0]
 					message = show_call[i][1]
-					code += '<tr onclick="show_call_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#callModal"><td>' + message + '</td></tr>'
+					code += '<tr  style="white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;"  onclick="show_call_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#callModal"><td>' + message + '</td></tr>'
 				}
 				
 				document.getElementById("call_tbody").innerHTML += code
@@ -428,7 +448,7 @@ $(window).on('shown.bs.modal', function() {
 		    <table class="table table-hover" width="1200">
 		    	<tbody id="msg_tbody" name="msg_tbody">
 		    	{% for id,message in show_message %}
-		    	<tr onclick="show_msg_modal('{{ id }}', '{{ message }}')" id="{{ id }}" name="{{ id }}" data-toggle="modal" data-target="#msgModal"><td>{{ message }}</td></tr>
+		    	<tr onclick="show_msg_modal('{{ id }}')" id="{{ id }}" name="{{ id }}" data-toggle="modal" data-target="#msgModal"><td>{{ message }}</td></tr>
 		    	{% endfor %}
 		    	</tbody>
 		    </table>
@@ -440,7 +460,7 @@ $(window).on('shown.bs.modal', function() {
     		<table class="table table-hover" width="1200">
 		    	<tbody id="call_tbody" name="call_tbody">
 		    	{% for id,message in show_call %}
-		    	<tr onclick="show_call_modal('{{ id }}', '{{ message }}')" id="{{ id }}" name="{{ id }}" data-toggle="modal" data-target="#callModal"><td>{{ message }}</td></tr>
+		    	<tr onclick="show_call_modal('{{ id }}')" id="{{ id }}" name="{{ id }}" data-toggle="modal" data-target="#callModal"><td>{{ message }}</td></tr>
 		    	{% endfor %}
 		    	</tbody>
 		    </table>

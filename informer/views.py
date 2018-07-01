@@ -226,31 +226,27 @@ class EmailPageView(TemplateView):
 		for row in emails:
 			emails_list.append(row[0])
 		
-
-		t = {}
+		me = "ibm2014048@iiita.ac.in"
+		mypass = ""
+		msg = MIMEMultipart('alternative')
+		#msg['Subject'] = "Link"
+		msg['From'] = me
+		msg['To'] = ", ".join(emails_list)
+		
+		part = MIMEText(m, 'html')
+		msg.attach(part)
+		
 		try:
-			me = "ibm2014048@iiita.ac.in"
-			you = "jeevansai502@gmail.com"
-
-			msg = MIMEMultipart('alternative')
-			#msg['Subject'] = "Link"
-			msg['From'] = me
-			msg['To'] = you
-		
-			part = MIMEText(m, 'html')
-			msg.attach(part)
-		
 			server = smtplib.SMTP('smtp.gmail.com', 587)
 			server.starttls()
-			server.login("ibm2014048@iiita.ac.in", "Jeevan123")
-			server.sendmail("ibm2014048@iiita.ac.in", "jeevansai502@gmail.com", msg.as_string())
-		
-			#email = EmailMessage('Incident communication', msg, to = ['jeevansai502@gmail.com'])
-			#email.send()
-
-			return JsonResponse({"result": "Email sent successfully"})
+			server.login(me, mypass)	
+			server.sendmail(me, emails_list , msg.as_string())
+				
 		except Exception as e:
 			return JsonResponse({"result": "Email sending failed"})
+
+		return JsonResponse({"result": "Email sent successfully"})
+		
 
 
 class MsgPageView(TemplateView):  
@@ -330,7 +326,7 @@ class CallPageView(TemplateView):
 		#	return render(request, 'main.html', t)
 		'''
 
-
+'''
 class UsersPageView(TemplateView):  
 	def post(self,request):
 		data = request.POST["name"]
@@ -340,7 +336,8 @@ class UsersPageView(TemplateView):
 			users = cursor.fetchall()
 		
 		return JsonResponse({"data": users})
-		
+'''	
+
 class EmailData(TemplateView):  
 	def post(self,request):
 		id1 = request.POST["id"]
@@ -360,6 +357,29 @@ class MsgData(TemplateView):
 	def post(self,request):
 		id1 = request.POST["id"]
 
+		with connection.cursor() as cursor:
+			cursor.execute("SELECT * FROM informer_msg_history WHERE id=%s",(id1,))	
+			data = cursor.fetchall()
+			data = list(data[0])
+			data.pop(0)
+			group = data.pop()
+			msg = data.pop()
+
+		return JsonResponse({"data": msg,"group":group})
+
+class CallData(TemplateView):  
+	def post(self,request):
+		id1 = request.POST["id"]
+
+		with connection.cursor() as cursor:
+			cursor.execute("SELECT * FROM informer_call_history WHERE id=%s",(id1,))	
+			data = cursor.fetchall()
+			data = list(data[0])
+			data.pop(0)
+			group = data.pop()
+			msg = data.pop()
+
+		return JsonResponse({"data": msg,"group":group})		
 
 
 class EmailLoad(TemplateView):
@@ -392,7 +412,34 @@ class MsgLoad(TemplateView):
 			cursor.execute("SELECT id,message FROM informer_message_history WHERE id>%s ORDER BY id DESC LIMIT 10",(lim,))
 			rows = json.loads(json.dumps(cursor.fetchall()))
 
+			l = len(rows)
+			for i in range(l):
+				s = rows[i][1]
+				rows[i][1] = s[0:50]
+
 		if len(rows) > 0:	
 			return JsonResponse({"show_message": rows,"msg_load_more":rows[len(rows)-1][0]})
 		else:
 			return JsonResponse({"show_message": rows,"msg_load_more": "0"})	
+
+class CallLoad(TemplateView):
+	def post(self,request):
+
+		lim = int(request.POST["lim"])
+		
+		if lim == 0:
+			return JsonResponse({"show_call": [],"call_load_more":"0"})
+
+		with connection.cursor() as cursor:
+			cursor.execute("SELECT id,message FROM informer_call_history WHERE id>%s ORDER BY id DESC LIMIT 10",(lim,))
+			rows = json.loads(json.dumps(cursor.fetchall()))
+
+			l = len(rows)
+			for i in range(l):
+				s = rows[i][1]
+				rows[i][1] = s[0:50]
+
+		if len(rows) > 0:	
+			return JsonResponse({"show_call": rows,"call_load_more":rows[len(rows)-1][0]})
+		else:
+			return JsonResponse({"show_call": rows,"call_load_more": "0"})	
