@@ -47,7 +47,6 @@ class LoginPageView(TemplateView):
 		with connection.cursor() as cursor:
 			original = cursor.execute("SELECT password FROM informer_user_login_details WHERE email=%s",(email,))
 			corr = original.fetchone()
-			print (corr)
 			
 			if corr == None:
 				ln = {}
@@ -89,14 +88,12 @@ class RegisterPageView(TemplateView):
 
 		try:
 			with connection.cursor() as cursor:
-				cursor.execute("INSERT INTO informer_user_login_details VALUES (%s,%s)",(email,password))
-				cursor.execute("INSERT INTO informer_user_details VALUES (%s,%s,%s,%s)",(email,username,mobile,group))
+				cursor.execute("INSERT INTO informer_user_login_details(email,password) VALUES (%s,%s)",(email,password))
+				cursor.execute("INSERT INTO informer_user_details(email,username,mobile,groupname) VALUES (%s,%s,%s,%s)",(email,username,mobile,group))
 
 			reg["result"] = "Signup success"
 			return render(request, 'login.html',reg)
 		except Exception as e:
-			print (e)
-
 			reg["result"] = "Oops some error occured"
 			return render(request, 'register.html',reg)
 
