@@ -253,8 +253,12 @@ class MsgPageView(TemplateView):
 	def post(self,request):
 		data = request.POST["msgdata"]
 		group = request.POST["hidden_group_msg"]
+
+		with connection.cursor() as cursor:
+			cursor.execute("SELECT mobile FROM informer_user_details WHERE groupname=%s",(group,))	
+			numbers = cursor.fetchall()
 		
-		msg_data =  {'apikey': '4TCdBKnBuwE-5SbT9KHhtkSzfZ779fkCmFYnvsQ97Y','numbers': '919873997340','message' : 'Good boy', 'sender': 'TXTLCL'}
+		msg_data =  {'apikey': 'WjaljBgU2dg-f4h5q1lJScSjkyIy4SVOJ8mBIS1IS6','numbers': '919873997340','message' : data, 'sender': 'TXTLCL'}
 		
 		
 		f = urllib.request.urlopen('https://api.textlocal.in/send/?'+ urllib.parse.urlencode(msg_data)) 
