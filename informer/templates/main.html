@@ -1,371 +1,13 @@
 <html>
 <head>
-
+<meta http-equiv="Cache-Control" content="no-store" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 <link rel="stylesheet" href="../static/mdl/material.min.css">
 
-<title>InformerX</title>
+<title>UpdateOps</title>
 
     <!-- Bootstrap CSS -->   
 <link rel="stylesheet" href="../static/bootstrap-4.0.0-alpha.6-dist/css/bootstrap.min.css">
-
-<script>
-
-/*
-function fetch_users(name){
-
-	$.ajax({
-		type: 'POST',	
-		url: "/users/",
-		data: { "name": name , "csrfmiddlewaretoken": '{{ csrf_token }}'},
-		success: function(result){
-			
-			alert("B");
-			var s = '<ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect" for="' + name + '">\n'
-			var s1 = document.getElementById("usersmenu").innerHTML
-			
-			for( i=0 ; i < result.data.length ; i++){
-				
-				s += '<li class="mdl-menu__item">' + result.data[i] + '</li>\n'							
-			}
-			s += '</ul>\n'
-		
-			alert(s1 + "\n" + s)
-			
-			document.getElementById("usersmenu").innerHTML = s1 + "\n" + s
-		
-		}
-		
-		});
-
-}
-*/
-
-
-function add_group(name){
-	document.getElementById("hidden_group_email").value = name
-	document.getElementById("hidden_group_msg").value = name
-	document.getElementById("hidden_group_call").value = name
-}
-
-
-function show_email_modal(id){
-	$.ajax({
-		type: 'POST',	
-		url: "/emaildata/",
-		data: { "id": id , "csrfmiddlewaretoken": '{{ csrf_token }}'},
-		success: function(result){
-			data = result.data
-			group = result.group
-			document.getElementById("history_group_email").value = group
-			fields = ["history_communication_type","history_incident_number","history_priority","history_region","history_status","history_incident_opened","history_incident_duration","history_what_happened","history_business_impact","history_service_impact","history_key_groups_and_people_involved","history_what_we_discovered","history_what_finally_fixed_the_issue","history_post_recovery_action_items","history_design_issues","history_chronology_of_the_incident","history_flagged_for_reliability","history_date_and_time_flagged_for_reliability","history_reliability_record_number","history_time_down","history_date_and_time_issue_resolved","history_did_we_receive_an_alert","history_date_and_time_alert_received"]
-
-			for (i=0;i<fields.length;i++){
-				document.getElementById(fields[i]).value = data[i]
-			}
-		}
-		
-		});
-
-
-}
-
-function show_msg_modal(id){
-	$.ajax({
-		type: 'POST',	
-		url: "/msgdata/",
-		data: { "id": id , "csrfmiddlewaretoken": '{{ csrf_token }}'},
-		success: function(result){
-			data = result.data
-			group = result.group
-			document.getElementById("history_group_msg").value = group
-			document.getElementById("history_msgdata").innerHTML = data
-		}
-		
-		});
-
-}
-
-function show_call_modal(id){
-	$.ajax({
-		type: 'POST',	
-		url: "/calldata/",
-		data: { "id": id , "csrfmiddlewaretoken": '{{ csrf_token }}'},
-		success: function(result){
-			data = result.data
-			group = result.group
-			document.getElementById("history_group_call").value = group
-			document.getElementById("history_calldata").innerHTML = data
-		}
-		
-		});
-
-}
-
-
-function email_load_more(){		
-		$('#email_load_more_btn').addClass("disabled")
-		lim = document.getElementById("hidden_load_email").value
-
-		$.ajax({
-			type: 'POST',	
-			url: "/emailload/",
-			data: { "lim": lim , "csrfmiddlewaretoken": '{{ csrf_token }}'},
-			success: function(result){
-
-				show_email = result.show_email
-				email_load = result.email_load_more
-
-				code = ""
-
-				for ( i = 0;i<show_email.length;i++){
-					id = show_email[i][0]
-					what = show_email[i][1]
-					code += '<tr  style="white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;"   onclick="show_email_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#emailModal"><td>' + what + '</td></tr>'
-
-				}
-				
-				document.getElementById("email_tbody").innerHTML += code
-				document.getElementById("hidden_load_email").value = email_load
- 				$('#email_load_more_btn').removeClass("disabled");
-			}
-		
-		});
-		
-}
-
-function msg_load_more(){
-	$('#msg_load_more_btn').addClass("disabled")
-
-		lim = document.getElementById("hidden_load_msg").value
-
-		$.ajax({
-			type: 'POST',	
-			url: "/msgload/",
-			data: { "lim": lim , "csrfmiddlewaretoken": '{{ csrf_token }}'},
-			success: function(result){
-
-				show_message = result.show_message
-				msg_load_more = result.msg_load_more
-
-				code = ""
-
-				for ( i = 0;i<show_message.length;i++){
-					id = show_message[i][0]
-					message = show_message[i][1]
-					code += '<tr style="white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;"  onclick="show_msg_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#msgModal"><td>' + message + '</td></tr>'
-				}
-				
-				document.getElementById("msg_tbody").innerHTML += code
-				document.getElementById("msg_load_more").value = msg_load_more
- 				$('#msg_load_more_btn').removeClass("disabled");	
-			}
-		
-		});
-		
-}
-
-
-function call_load_more(){
-
-		$('#call_load_more_btn').addClass("disabled")
-		lim = document.getElementById("hidden_load_call").value
-
-		$.ajax({
-			type: 'POST',	
-			url: "/callload/",
-			data: { "lim": lim , "csrfmiddlewaretoken": '{{ csrf_token }}'},
-			success: function(result){
-
-				show_call = result.show_call
-				call_load_more = result.call_load_more
-
-				code = ""
-
-				for ( i = 0;i<show_call.length;i++){
-					id = show_call[i][0]
-					message = show_call[i][1]
-					code += '<tr  style="white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;"  onclick="show_call_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#callModal"><td>' + message + '</td></tr>'
-				}
-				
-				document.getElementById("call_tbody").innerHTML += code
-				document.getElementById("call_load_more").value = call_load_more
- 				$('#call_load_more_btn').removeClass("disabled");
-			}
-		
-		});
-		
-}
-
-
-function email_history_submit(){
-
-		$('#email_history_submit_btn').addClass("disabled")
-
-		history_fields = ["history_group_email","history_communication_type","history_incident_number","history_priority","history_region","history_status","history_incident_opened","history_incident_duration","history_what_happened","history_business_impact","history_service_impact","history_key_groups_and_people_involved","history_what_we_discovered","history_what_finally_fixed_the_issue","history_post_recovery_action_items","history_design_issues","history_chronology_of_the_incident","history_flagged_for_reliability","history_date_and_time_flagged_for_reliability","history_reliability_record_number","history_time_down","history_date_and_time_issue_resolved","history_did_we_receive_an_alert","history_date_and_time_alert_received"]
-
-		fields = ["hidden_group_email","communication_type","incident_number","priority","region","status","incident_opened","incident_duration","what_happened","business_impact","service_impact","key_groups_and_people_involved","what_we_discovered","what_finally_fixed_the_issue","post_recovery_action_items","design_issues","chronology_of_the_incident","flagged_for_reliability","date_and_time_flagged_for_reliability","reliability_record_number","time_down","date_and_time_issue_resolved","did_we_receive_an_alert","date_and_time_alert_received"]
-
-
-		s = "{"
-
-		s += '"csrfmiddlewaretoken":' +  '"' + "{{ csrf_token }}" + '",'
-
-		for (i=0;i<fields.length;i++){
-			if (i == fields.length -1){
-				s += '"' + fields[i] + '":"' + document.getElementById( history_fields[i]).value + '"}'
-				break				
-			}
-
-			s += '"' + fields[i] + '":"' + document.getElementById(history_fields[i]).value + '",'
-		}
-
-		$.ajax({
-			type: 'POST',	
-			url: "/email/",
-			data: JSON.parse(s),
-			success: function(result){
-				document.getElementById("email_history_result").innerHTML = result.result
-				$('#email_history_submit_btn').removeClass("disabled");
-			}
-		});
-
-}
-
-
-function msg_history_submit(){
-
-		$('#msg_history_submit_btn').addClass("disabled")
-		document.getElementById("msg_history_result").innerHTML = ""
-
-		hidden_group_msg = document.getElementById("history_group_msg").innerText
-		msgdata =  document.getElementById("history_msgdata").innerText
-
-		$.ajax({
-			type: 'POST',	
-			url: "/message/",
-			data: { "csrfmiddlewaretoken": "{{ csrf_token }}" ,"hidden_group_msg":hidden_group_msg ,"msgdata": msgdata},
-			success: function(result){
-				document.getElementById("msg_history_result").innerHTML = result.result
-				$('#msg_history_submit_btn').removeClass("disabled");
-			}
-		
-		});
-
-		
-}
-
-function call_history_submit(){
-
-		$('#calll_history_submit_btn').addClass("disabled")
-		document.getElementById("call_history_result").innerHTML = ""
-		hidden_group_call = document.getElementById("history_group_call").innerText
-		calldata =  document.getElementById("history_calldata").innerText
-
-		$.ajax({
-			type: 'POST',	
-			url: "/call/",
-			data: { "csrfmiddlewaretoken": '{{ csrf_token }}' , },
-			success: function(result){
-				document.getElementById("call_history_result").innerHTML = result.result
-				$('#call_history_submit_btn').removeClass("disabled");
-			}
-	
-		});
-		
-
-}
-
-
-function email_submit(){
-
-		$('#email_submit_btn').addClass("disabled")
-		document.getElementById("email_result").innerHTML = ""
-		
-
-		fields = ["hidden_group_email","communication_type","incident_number","priority","region","status","incident_opened","incident_duration","what_happened","business_impact","service_impact","key_groups_and_people_involved","what_we_discovered","what_finally_fixed_the_issue","post_recovery_action_items","design_issues","chronology_of_the_incident","flagged_for_reliability","date_and_time_flagged_for_reliability","reliability_record_number","time_down","date_and_time_issue_resolved","did_we_receive_an_alert","date_and_time_alert_received"]
-
-		s = "{"
-
-		s += '"csrfmiddlewaretoken":' +  '"' + "{{ csrf_token }}" + '",'
-
-		for (i=0;i<fields.length;i++){
-			if (i == fields.length -1){
-				s += '"' + fields[i] + '":"' + document.getElementById(fields[i]).value + '"}'
-				break				
-			}
-
-			s += '"' + fields[i] + '":"' + document.getElementById(fields[i]).value + '",'
-		}
-
-
-		$.ajax({
-			type: 'POST',	
-			url: "/email/",
-			data: JSON.parse(s),
-			success: function(result){
-				document.getElementById("email_result").innerHTML = result.result
-				$('#email_submit_btn').removeClass("disabled");
-			}
-		});
-
-		
-}
-
-function msg_submit(){
-
-		$('#msg_submit_btn').addClass("disabled")
-		document.getElementById("msg_result").innerHTML = ""
-
-		hidden_group_msg = document.getElementById("hidden_group_msg").innerText
-		msgdata =  document.getElementById("msgdata").innerText
-
-		$.ajax({
-			type: 'POST',	
-			url: "/message/",
-			data: { "csrfmiddlewaretoken": "{{ csrf_token }}" ,"hidden_group_msg":hidden_group_msg ,"msgdata": msgdata},
-			success: function(result){
-				document.getElementById("msg_result").innerHTML = result.result
-				$('#msg_submit_btn').removeClass("disabled");
-			}
-		});	
-		
-}
-
-
-function call_submit(){
-		
-		$('#call_submit_btn').addClass("disabled")
-		document.getElementById("call_result").innerHTML = ""
-		hidden_group_call = document.getElementById("hidden_group_call").innerText
-		calldata =  document.getElementById("calldata").innerText
-
-		$.ajax({
-			type: 'POST',	
-			url: "/call/",
-			data: { "csrfmiddlewaretoken": '{{ csrf_token }}' , "hidden_group_call":hidden_group_call ,"calldata": calldata},
-			success: function(result){
-				document.getElementById("call_result").innerHTML = result.result
-				$('#call_submit_btn').removeClass("disabled");
-			}
-		});	
-		
-		
-}
-
-
-$(window).on('shown.bs.modal', function() { 
-    document.getElementById("call_result").innerHTML = ""
-    document.getElementById("msg_result").innerHTML = ""
-    document.getElementById("email_result").innerHTML = ""
-    document.getElementById("email_history_result").innerHTML = ""
-    document.getElementById("msg_history_result").innerHTML = ""
-    document.getElementById("call_history_result").innerHTML = ""
-
-});
-
-
-</script>
 
 <style>
 /*
@@ -435,8 +77,8 @@ $(window).on('shown.bs.modal', function() {
             <div class = "mdl-tabs__panel is-active" id = "tab1-history">    
 		    <table class="table table-hover" width="800" style="color: white">
 		    	<tbody id="email_tbody" name="email_tbody">
-				{% for id,what in show_email %}
-				<tr onclick="show_email_modal('{{ id }}')" id="{{ id }}" name="{{ id }}" data-toggle="modal" data-target="#emailModal"><td>{{ what }}</td></tr>
+				{% for id,incident_number,region,status,incident_opened_date in show_email %}
+				 <tr style="white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;"   onclick="show_email_modal('{{ id }}')" id="{{ id }}" name="{{id}}"data-toggle="modal" data-target="#emailModal"><td>  Incident-number: {{ incident_number}} region: {{ region }}  status: {{ status }}  Incident opened date: {{ incident_opened_date }} </td></tr>
 				{% endfor %}
 				</tbody>
 		    </table>
@@ -479,7 +121,7 @@ $(window).on('shown.bs.modal', function() {
 <div class="modal fade" id="emailModal" tabindex="-1" role="dialog" aria-labelledby="mailModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
 
-		<form action="/emailhistory/" method="POST">
+		<form action="/email/" method="POST">
 		    {% csrf_token %}
 		    <div class="modal-content pl-2">
 		    <div id="email_history_result"></div>
@@ -495,32 +137,58 @@ $(window).on('shown.bs.modal', function() {
 		   
 			<div class="form-group row">
 		    	<label for="history_communication_type" class="col-md-4">Communication Type:</label>
-		    	<input type="text" class="form-control col-md-6" id="history_communication_type" name="history_communication_type">
+		    	<select class="form-control col-md-6" id="history_communication_type" name="history_communication_type">
+		    		<option>New</option>
+		    		<option>Update</option>
+		    		<option>Resolved</option>
+		    		<option>Report information only</option>
+		    	</select>
 		  	</div>
 
 			<div class="form-group row">
 		    	<label for="history_incident_number" class="col-md-2">Incident Number:</label>
-		    	<input type="text" class="form-control col-md-4" id="history_incident_number" name="history_incident_number"/>
+		    	<input type="text" class="form-control col-md-3" id="history_incident_number" name="history_incident_number"/>
 		    	
 		    	<label class="col-md-2" for="history_priority">Priority:</label>
-		    	<input class="form-control col-md-4" type="text" id="history_priority" name="history_priority"/>
+		    	<select class="form-control col-md-3" id="history_priority" name="history_priority">
+		    		<option>Low</option>
+		    		<option>Medium</option>
+		    		<option>High</option>
+		    	</select>	
 		  	</div>
 		      
 		      
 		      <div class="form-group row">
 		      	<label class="col-md-2" for="history_region">Region/Location:</label>
-			<input class="form-control col-md-4" type="text" id="history_region" name="history_region"/>
-			
-			<label class="col-md-2" for="history_status">Status:</label>
-			<input class="form-control col-md-4" type="text" id="history_status" name="history_status"/>
+				<select class="form-control col-md-3"  id="history_region" name="history_region">
+				<option>ASPAC</option>
+				<option>EMEA</option>
+				<option>NA</option>
+				<option>LA</option>
+				<option>Global</option>
+				</select>
+				<label class="col-md-2" for="history_status">Status:</label>
+				<select class="form-control col-md-3" id="history_status" name="history_status">
+				<option>New</option>
+				<option>In progress</option>
+				<option>Resolved</option>
+				</select>	
 		      </div>
 		      
 		      <div class="form-group row">
-			<label class="col-md-2" for="history_incident_opened">Incident Opened:</label>
-			<input class="form-control col-md-4" type="text" id="history_incident_opened" name="history_incident_opened"/>
-			
-			<label class="col-md-2" for="history_incident_duration">Incident Duration:</label>
-		    <input class="form-control col-md-4" type="text" id="history_incident_duration" name="history_incident_duration"/>
+		      	<label class="col-md-2" for="history_incident_opened">Incident Opened:</label>
+		      	<div class="col-md-3" id="history_incident_opened" name="history_incident_opened">
+    				<input class="form-control" type="date" value="0000-00-00"  id="history_incident_opened_date" name="history_incident_opened_date"/>				
+					<input class="form-control" type="time" value="00:00:00" id="history_incident_opened_time" name="history_incident_opened_time"/>
+				</div>
+
+
+				<label class="col-md-2" for="history_incident_duration">Incident Duration:</label>
+				<div class="col-md-3" id="history_incident_duration" name="history_incident_duration">
+		    		<input class="form-control" type="number" value="0" id="history_incident_duration_days" name="history_incident_duration_days" min="0"/>
+		    		<input class="form-control" type="number" value="0" id="history_incident_duration_hr" name="history_incident_duration_hr" min="0" max="23"/>
+		    		<input class="form-control" type="number" value="0" id="history_incident_duration_min" name="history_incident_duration_min" min="0" max="59"/>
+		    	</div>
 		      </div>
 		      
 		      <div class="form-group row">
@@ -565,15 +233,22 @@ $(window).on('shown.bs.modal', function() {
 		      
 		      <div class="form-group row">
 			<label class="col-md-4" for="history_chronology_of_the_incident">Chronology of the incident</label>
-			<input class="form-control col-md-6" type="text" id="history_chronology_of_the_incident" name="history_chronology_of_the_incident"/>
+			<textarea rows="6" class="form-control col-md-6" type="text" id="history_chronology_of_the_incident" name="history_chronology_of_the_incident"></textarea>
 		      </div>
 		      
 		      <div class="form-group row">
-			<label class="col-md-2" for="history_flagged_for_reliability">Flagged for Reliability:</label>
-			<input class="form-control col-md-4" type="text" id="history_flagged_for_reliability" name="history_flagged_for_reliability"/>
-			
-			<label class="col-md-2" for="history_date_and_time_flagged_for_reliability">Date and Time Flagged for Reliability:</label>
-			<input class="form-control col-md-3" type="text" id="history_date_and_time_flagged_for_reliability" name="history_date_and_time_flagged_for_reliability"/>
+				<label class="col-md-2" for="history_flagged_for_reliability">Flagged for Reliability:</label>
+				<select class="form-control col-md-3" id="history_flagged_for_reliability" name="history_flagged_for_reliability">
+				<option>Yes</option>
+				<option>No</option>
+				</select>
+				
+				<label class="col-md-2" for="history_date_and_time_flagged_for_reliability">Date and Time Flagged for Reliability:</label>
+				<div id="history_date_and_time_flagged_for_reliability" name="history_date_and_time_flagged_for_reliability" class="col-md-3">
+    				<input class="form-control" type="date"  value="0000-00-00" id="history_date_and_time_flagged_for_reliability_date" name="history_date_and_time_flagged_for_reliability_date"/>
+					<input class="form-control" type="time" value="00:00:00" id="history_date_and_time_flagged_for_reliability_time" name="history_date_and_time_flagged_for_reliability_time"/>
+				</div>
+
 		      </div>
 		   
 		      
@@ -584,18 +259,31 @@ $(window).on('shown.bs.modal', function() {
 		      
 		      <div class="form-group row">
 		      	<label class="col-md-2" for="history_time_down">Time Down:</label>
-			<input class="form-control col-md-4" type="text" id="history_time_down" name="history_time_down"/>
+				<div id="history_time_down" name="history_time_down" class="col-md-3">
+    				<input class="form-control" type="date"  value="0000-00-00" id="history_time_down_date" name="history_time_down_date"/>
+					<input class="form-control" type="time"  value="00:00:00" id="history_time_down_time" name="history_time_down_time"/>
+				</div>
 			
 			<label class="col-md-2" for="history_date_and_time_issue_resolved">Date & Time Issue Resolved:</label>
-			<input class="form-control col-md-3" type="text" id="history_date_and_time_issue_resolved" name="history_date_and_time_issue_resolved"/>
+				<div id="history_date_and_time_issue_resolved" name="history_date_and_time_issue_resolved" class="col-md-3">
+    				<input class="form-control" type="date"  value="0000-00-00" id="history_date_and_time_issue_resolved_date" name="history_date_and_time_issue_resolved_date"/>
+					<input class="form-control" type="time"  value="00:00:00" id="history_date_and_time_issue_resolved_time" name="history_date_and_time_issue_resolved_time"/>
+				</div>
+
 		      </div>
 		      
 		      <div class="form-group row">
 			<label class="col-md-2" for="history_did_we_receive_an_alert">Did we receive an alert:</label>
-			<input class="form-control col-md-4" type="text" id="history_did_we_receive_an_alert" name="history_did_we_receive_an_alert"/>
+			<select class="form-control col-md-3" id="history_did_we_receive_an_alert" name="history_did_we_receive_an_alert">
+				<option>Yes</option>
+				<option>No</option>
+			</select>
 			
 			<label class="col-md-2" for="history_date_and_time_alert_received">Date & Time Alert Received:</label>
-			<input class="form-control col-md-3" type="text" id="history_date_and_time_alert_received" name="history_date_and_time_alert_received"/>
+			<div id="history_date_and_time_alert_received" name="history_date_and_time_alert_received" class="col-md-3">
+    				<input class="form-control" type="date"  value="0000-00-00" id="history_date_and_time_alert_received_date" name="history_date_and_time_alert_received_date"/>
+					<input class="form-control" type="time"  value="00:00:00" id="history_date_and_time_alert_received_time" name="history_date_and_time_alert_received_time"/>
+				</div>
 		      </div>
 		      
 		      </div>
@@ -688,8 +376,8 @@ $(window).on('shown.bs.modal', function() {
 
 		<form action="/email/" method="POST">
 		    {% csrf_token %}
-		    <div class="modal-content">
-               <div id="email_result"></div>
+		    <div class="modal-content pl-2">
+		    <div id="email_result"></div>
 		      <div class="modal-header">
 			<h5 class="modal-title" id="mailModalLabel">Email</h5>
 			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -702,32 +390,61 @@ $(window).on('shown.bs.modal', function() {
 		   
 			<div class="form-group row">
 		    	<label for="communication_type" class="col-md-4">Communication Type:</label>
-		    	<input type="text" class="form-control col-md-6" id="communication_type" name="communication_type">
+		    	<select class="form-control col-md-6" id="communication_type" name="communication_type">
+		    		<option>New</option>
+		    		<option>Update</option>
+		    		<option>Resolved</option>
+		    		<option>Report information only</option>
+		    	</select>
 		  	</div>
 
 			<div class="form-group row">
 		    	<label for="incident_number" class="col-md-2">Incident Number:</label>
-		    	<input type="text" class="form-control col-md-4" id="incident_number" name="incident_number"/>
+		    	<input type="text" class="form-control col-md-3" id="incident_number" name="incident_number"/>
 		    	
 		    	<label class="col-md-2" for="priority">Priority:</label>
-		    	<input class="form-control col-md-4" type="text" id="priority" name="priority"/>
+		    	<select class="form-control col-md-3" id="priority" name="priority">
+		    		<option>Low</option>
+		    		<option>Medium</option>
+		    		<option>High</option>
+		    	</select>	
 		  	</div>
 		      
 		      
 		      <div class="form-group row">
 		      	<label class="col-md-2" for="region">Region/Location:</label>
-			<input class="form-control col-md-4" type="text" id="region" name="region"/>
-			
-			<label class="col-md-2" for="status">Status:</label>
-			<input class="form-control col-md-4" type="text" id="status" name="status"/>
+				<select class="form-control col-md-3"  id="region" name="region">
+				<option>ASPAC</option>
+				<option>EMEA</option>
+				<option>NA</option>
+				<option>LA</option>
+				<option>Global</option>
+				</select>
+				<label class="col-md-2" for="status">Status:</label>
+				<select class="form-control col-md-3" id="status" name="status">
+				<option>New</option>
+				<option>In progress</option>
+				<option>Resolved</option>
+				</select>	
 		      </div>
 		      
 		      <div class="form-group row">
-			<label class="col-md-2" for="incident_opened">Incident Opened:</label>
-			<input class="form-control col-md-4" type="text" id="incident_opened" name="incident_opened"/>
-			
-			<label class="col-md-2" for="incident_duration">Incident Duration:</label>
-			<input class="form-control col-md-4" type="text" id="incident_duration" name="incident_duration"/>
+		      	<label class="col-md-2" for="incident_opened">Incident Opened:</label>
+		      	<div class="col-md-3" id="incident_opened" name="incident_opened">
+    				<input class="form-control" value="0000-00-00" type="date" id="incident_opened_date" name="incident_opened_date"/>				
+					<input class="form-control"  value="00:00:00" type="time" id="incident_opened_time" name="incident_opened_time" value=""/>
+				</div>
+
+
+				<label class="col-md-2" for="incident_duration">Incident Duration:</label>
+				<div class="col-md-3" id="incident_duration" name="incident_duration">
+		    		<label class="col-md-2" for="incident_duration_days">Days:</label>
+		    		<input class="form-control" value="0" type="number" id="incident_duration_days" name="incident_duration_days" min="0"/>
+		    		<label class="col-md-2" for="incident_duration_hr">Hours:</label>
+		    		<input class="form-control" value="0" type="number" id="incident_duration_hr" name="incident_duration_hr" min="0" max="23"/>
+		    		<label class="col-md-2" for="incident_duration_min">Minutes:</label>
+		    		<input class="form-control" value="0" type="number" id="incident_duration_min" name="incident_duration_min" min="0" max="59"/>
+		    	</div>
 		      </div>
 		      
 		      <div class="form-group row">
@@ -772,15 +489,22 @@ $(window).on('shown.bs.modal', function() {
 		      
 		      <div class="form-group row">
 			<label class="col-md-4" for="chronology_of_the_incident">Chronology of the incident</label>
-			<input class="form-control col-md-6" type="text" id="chronology_of_the_incident" name="chronology_of_the_incident"/>
+			<textarea rows="6" class="form-control col-md-6" type="text" id="chronology_of_the_incident" name="chronology_of_the_incident"></textarea>
 		      </div>
 		      
 		      <div class="form-group row">
-			<label class="col-md-2" for="flagged_for_reliability">Flagged for Reliability:</label>
-			<input class="form-control col-md-4" type="text" id="flagged_for_reliability" name="flagged_for_reliability"/>
-			
-			<label class="col-md-2" for="date_and_time_flagged_for_reliability">Date and Time Flagged for Reliability:</label>
-			<input class="form-control col-md-4" type="text" id="date_and_time_flagged_for_reliability" name="date_and_time_flagged_for_reliability"/>
+				<label class="col-md-2" for="flagged_for_reliability">Flagged for Reliability:</label>
+				<select class="form-control col-md-3" id="flagged_for_reliability" name="flagged_for_reliability">
+				<option>Yes</option>
+				<option>No</option>
+				</select>
+				
+				<label class="col-md-2" for="date_and_time_flagged_for_reliability">Date and Time Flagged for Reliability:</label>
+				<div id="date_and_time_flagged_for_reliability" name="date_and_time_flagged_for_reliability" class="col-md-3">
+    				<input class="form-control" type="date" value="0000-00-00" id="date_and_time_flagged_for_reliability_date" name="date_and_time_flagged_for_reliability_date"/>
+					<input class="form-control" type="time"  value="00:00:00" id="date_and_time_flagged_for_reliability_time" name="date_and_time_flagged_for_reliability_time"/>
+				</div>
+
 		      </div>
 		   
 		      
@@ -791,28 +515,41 @@ $(window).on('shown.bs.modal', function() {
 		      
 		      <div class="form-group row">
 		      	<label class="col-md-2" for="time_down">Time Down:</label>
-			<input class="form-control col-md-4" type="text" id="time_down" name="time_down"/>
+				<div id="time_down" name="time_down" class="col-md-3">
+    				<input class="form-control" type="date" value="0000-00-00"  id="time_down_date" name="time_down_date"/>
+					<input class="form-control" type="time"  value="00:00:00" id="time_down_time" name="time_down_time"/>
+				</div>
 			
 			<label class="col-md-2" for="date_and_time_issue_resolved">Date & Time Issue Resolved:</label>
-			<input class="form-control col-md-4" type="text" id="date_and_time_issue_resolved" name="date_and_time_issue_resolved"/>
+				<div id="date_and_time_issue_resolved" name="date_and_time_issue_resolved" class="col-md-3">
+    				<input class="form-control" type="date" value="0000-00-00"  id="date_and_time_issue_resolved_date" name="date_and_time_issue_resolved_date"/>
+					<input class="form-control" type="time"  value="00:00:00" id="date_and_time_issue_resolved_time" name="date_and_time_issue_resolved_time"/>
+				</div>
+
 		      </div>
 		      
 		      <div class="form-group row">
 			<label class="col-md-2" for="did_we_receive_an_alert">Did we receive an alert:</label>
-			<input class="form-control col-md-4" type="text" id="did_we_receive_an_alert" name="did_we_receive_an_alert"/>
+			<select class="form-control col-md-3" id="did_we_receive_an_alert" name="did_we_receive_an_alert">
+				<option>Yes</option>
+				<option>No</option>
+			</select>
 			
 			<label class="col-md-2" for="date_and_time_alert_received">Date & Time Alert Received:</label>
-			<input class="form-control col-md-4" type="text" id="date_and_time_alert_received" name="date_and_time_alert_received"/>
+			<div id="date_and_time_alert_received" name="date_and_time_alert_received" class="col-md-3">
+    				<input class="form-control" type="date" value="0000-00-00"  id="date_and_time_alert_received_date" name="date_and_time_alert_received_date"/>
+					<input class="form-control" type="time"  value="00:00:00" id="date_and_time_alert_received_time" name="date_and_time_alert_received_time"/>
+				</div>
 		      </div>
 		      
 		      </div>
 		      <div class="modal-footer">
 			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-			<button type="button" class="btn btn-primary" id="email_submit_btn" name="email_submit_btn" onclick="email_submit">Send</button>
+			<button type="button" class="btn btn-primary" id="email_submit_btn" name="email_submit_btn" onclick="email_submit()">Send</button>
 		      </div>
 		    </div>
 		    
-		  </form>      
+		  </form>         
                </div>
             
                <div class = "mdl-tabs__panel" id = "tab2-panel">
@@ -875,6 +612,373 @@ $(window).on('shown.bs.modal', function() {
 </div>
 
  
+
+<script>
+
+/*
+function fetch_users(name){
+
+	$.ajax({
+		type: 'POST',	
+		url: "/users/",
+		data: { "name": name , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+		success: function(result){
+			
+			alert("B");
+			var s = '<ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect" for="' + name + '">\n'
+			var s1 = document.getElementById("usersmenu").innerHTML
+			
+			for( i=0 ; i < result.data.length ; i++){
+				
+				s += '<li class="mdl-menu__item">' + result.data[i] + '</li>\n'							
+			}
+			s += '</ul>\n'
+		
+			alert(s1 + "\n" + s)
+			
+			document.getElementById("usersmenu").innerHTML = s1 + "\n" + s
+		
+		}
+		
+		});
+
+}
+*/
+
+
+function add_group(name){
+	document.getElementById("hidden_group_email").value = name
+	document.getElementById("hidden_group_msg").value = name
+	document.getElementById("hidden_group_call").value = name
+}
+
+
+function show_email_modal(id){
+	$.ajax({
+		type: 'POST',	
+		url: "/emaildata/",
+		data: { "id": id , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+		success: function(result){
+			data = result.data
+			group = result.group
+			document.getElementById("history_group_email").value = group
+			fields = ["history_group_email","history_communication_type","history_incident_number","history_priority","history_region","history_status","history_incident_opened_date","history_incident_opened_time","history_incident_duration_days","history_incident_duration_hr","history_incident_duration_min","history_what_happened","history_business_impact","history_service_impact","history_key_groups_and_people_involved","history_what_we_discovered","history_what_finally_fixed_the_issue","history_post_recovery_action_items","history_design_issues","history_chronology_of_the_incident","history_flagged_for_reliability","history_date_and_time_flagged_for_reliability_date","history_date_and_time_flagged_for_reliability_time","history_reliability_record_number","history_time_down_date","history_time_down_time","history_date_and_time_issue_resolved_date","history_date_and_time_issue_resolved_time","history_did_we_receive_an_alert","history_date_and_time_alert_received_date","history_date_and_time_alert_received_time"]
+
+			for (i=0;i<fields.length;i++){
+				document.getElementById(fields[i]).value = data[i]
+			}
+		}
+		
+		});
+
+
+}
+
+function show_msg_modal(id){
+	$.ajax({
+		type: 'POST',	
+		url: "/msgdata/",
+		data: { "id": id , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+		success: function(result){
+			data = result.data
+			group = result.group
+			document.getElementById("history_group_msg").value = group
+			document.getElementById("history_msgdata").innerHTML = data
+		}
+		
+		});
+
+}
+
+function show_call_modal(id){
+	$.ajax({
+		type: 'POST',	
+		url: "/calldata/",
+		data: { "id": id , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+		success: function(result){
+			data = result.data
+			group = result.group
+			document.getElementById("history_group_call").value = group
+			document.getElementById("history_calldata").innerHTML = data
+		}
+		
+		});
+
+}
+
+
+function email_load_more(){		
+		$('#email_load_more_btn').addClass("disabled")
+		lim = document.getElementById("hidden_load_email").value
+
+		$.ajax({
+			type: 'POST',	
+			url: "/emailload/",
+			data: { "lim": lim , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+			success: function(result){
+
+				show_email = result.show_email
+				email_load = result.email_load_more
+
+				code = ""
+
+				for ( i = 0;i<show_email.length;i++){
+					id = show_email[i][0]
+					incident_number = show_email[i][1]
+					region = show_email[i][2]
+					status = show_email[i][3]
+					incident_opened_date = show_email[i][4]
+
+					code += '<tr  style="white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;"   onclick="show_email_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#emailModal"><td>' + 'Incident-number: ' + incident_number + ' region: ' + region + ' status: ' + status + ' Incident opened date: ' + incident_opened_date + '</td></tr>'
+
+				}
+				
+				document.getElementById("email_tbody").innerHTML += code
+				document.getElementById("hidden_load_email").value = email_load
+ 				$('#email_load_more_btn').removeClass("disabled");
+			}
+		
+		});
+		
+}
+
+function msg_load_more(){
+	$('#msg_load_more_btn').addClass("disabled")
+
+		lim = document.getElementById("hidden_load_msg").value
+
+		$.ajax({
+			type: 'POST',	
+			url: "/msgload/",
+			data: { "lim": lim , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+			success: function(result){
+
+				show_message = result.show_message
+				msg_load_more = result.msg_load_more
+
+				code = ""
+
+				for ( i = 0;i<show_message.length;i++){
+					id = show_message[i][0]
+					message = show_message[i][1]
+					code += '<tr style="white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;"  onclick="show_msg_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#msgModal"><td>' + message + '</td></tr>'
+				}
+				
+				document.getElementById("msg_tbody").innerHTML += code
+				document.getElementById("msg_load_more").value = msg_load_more
+ 				$('#msg_load_more_btn').removeClass("disabled");	
+			}
+		
+		});
+		
+}
+
+
+function call_load_more(){
+
+		$('#call_load_more_btn').addClass("disabled")
+		lim = document.getElementById("hidden_load_call").value
+
+		$.ajax({
+			type: 'POST',	
+			url: "/callload/",
+			data: { "lim": lim , "csrfmiddlewaretoken": '{{ csrf_token }}'},
+			success: function(result){
+
+				show_call = result.show_call
+				call_load_more = result.call_load_more
+
+				code = ""
+
+				for ( i = 0;i<show_call.length;i++){
+					id = show_call[i][0]
+					message = show_call[i][1]
+					code += '<tr  style="white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;"  onclick="show_call_modal('+ "'" +  id + "'" +  ')" id="' + id+ '"' + ' name="' + id + '"' + ' data-toggle="modal" data-target="#callModal"><td>' + message + '</td></tr>'
+				}
+				
+				document.getElementById("call_tbody").innerHTML += code
+				document.getElementById("call_load_more").value = call_load_more
+ 				$('#call_load_more_btn').removeClass("disabled");
+			}
+		
+		});
+		
+}
+
+
+function email_history_submit(){
+
+		$('#email_history_submit_btn').addClass("disabled")
+
+		history_fields = ["history_group_email","history_communication_type","history_incident_number","history_priority","history_region","history_status","history_incident_opened_date","history_incident_opened_time","history_incident_duration_days","history_incident_duration_hr","history_incident_duration_min","history_what_happened","history_business_impact","history_service_impact","history_key_groups_and_people_involved","history_what_we_discovered","history_what_finally_fixed_the_issue","history_post_recovery_action_items","history_design_issues","history_chronology_of_the_incident","history_flagged_for_reliability","history_date_and_time_flagged_for_reliability_date","history_date_and_time_flagged_for_reliability_time","history_reliability_record_number","history_time_down_date","history_time_down_time","history_date_and_time_issue_resolved_date","history_date_and_time_issue_resolved_time","history_did_we_receive_an_alert","history_date_and_time_alert_received_date","history_date_and_time_alert_received_time"]
+
+		fields = ["hidden_group_email","communication_type","incident_number","priority","region","status","incident_opened_date","incident_opened_time","incident_duration_days","incident_duration_hr","incident_duration_min","what_happened","business_impact","service_impact","key_groups_and_people_involved","what_we_discovered","what_finally_fixed_the_issue","post_recovery_action_items","design_issues","chronology_of_the_incident","flagged_for_reliability","date_and_time_flagged_for_reliability_date","date_and_time_flagged_for_reliability_time","reliability_record_number","time_down_date","time_down_time","date_and_time_issue_resolved_date","date_and_time_issue_resolved_time","did_we_receive_an_alert","date_and_time_alert_received_date","date_and_time_alert_received_time"]
+
+
+		s = "{"
+
+		s += '"csrfmiddlewaretoken":' +  '"' + "{{ csrf_token }}" + '",'
+
+		for (i=0;i<fields.length;i++){
+			if (i == fields.length -1){
+				s += '"' + fields[i] + '":"' + document.getElementById( history_fields[i]).value + '"}'
+				break				
+			}
+
+			s += '"' + fields[i] + '":"' + document.getElementById(history_fields[i]).value + '",'
+		}
+
+		$.ajax({
+			type: 'POST',	
+			url: "/email/",
+			data: JSON.parse(s),
+			success: function(result){
+				document.getElementById("email_history_result").innerHTML = result.result
+				$('#email_history_submit_btn').removeClass("disabled");
+			}
+		});
+
+}
+
+
+function msg_history_submit(){
+
+		$('#msg_history_submit_btn').addClass("disabled")
+		document.getElementById("msg_history_result").innerHTML = ""
+
+		hidden_group_msg = document.getElementById("history_group_msg").innerText
+		msgdata =  document.getElementById("history_msgdata").innerText
+
+		$.ajax({
+			type: 'POST',	
+			url: "/message/",
+			data: { "csrfmiddlewaretoken": "{{ csrf_token }}" ,"hidden_group_msg":hidden_group_msg ,"msgdata": msgdata},
+			success: function(result){
+				document.getElementById("msg_history_result").innerHTML = result.result
+				$('#msg_history_submit_btn').removeClass("disabled");
+			}
+		
+		});
+
+		
+}
+
+function call_history_submit(){
+
+		$('#calll_history_submit_btn').addClass("disabled")
+		document.getElementById("call_history_result").innerHTML = ""
+		hidden_group_call = document.getElementById("history_group_call").innerText
+		calldata =  document.getElementById("history_calldata").innerText
+
+		$.ajax({
+			type: 'POST',	
+			url: "/call/",
+			data: { "csrfmiddlewaretoken": '{{ csrf_token }}' , },
+			success: function(result){
+				document.getElementById("call_history_result").innerHTML = result.result
+				$('#call_history_submit_btn').removeClass("disabled");
+			}
+	
+		});
+		
+
+}
+
+
+function email_submit(){
+
+		$('#email_submit_btn').addClass("disabled")
+		document.getElementById("email_result").innerHTML = ""
+		
+
+
+		fields = ["hidden_group_email","communication_type","incident_number","priority","region","status","incident_opened_date","incident_opened_time","incident_duration_days","incident_duration_hr","incident_duration_min","what_happened","business_impact","service_impact","key_groups_and_people_involved","what_we_discovered","what_finally_fixed_the_issue","post_recovery_action_items","design_issues","chronology_of_the_incident","flagged_for_reliability","date_and_time_flagged_for_reliability_date","date_and_time_flagged_for_reliability_time","reliability_record_number","time_down_date","time_down_time","date_and_time_issue_resolved_date","date_and_time_issue_resolved_time","did_we_receive_an_alert","date_and_time_alert_received_date","date_and_time_alert_received_time"]
+
+		s = "{"
+
+		s += '"csrfmiddlewaretoken":' +  '"' + "{{ csrf_token }}" + '",'
+
+		
+		for (i=0;i<fields.length;i++){
+			if (i == fields.length -1){
+				s += '"' + fields[i] + '":"' + document.getElementById(fields[i]).value + '"}'
+				break			
+			}
+
+			s += '"' + fields[i] + '":"' + document.getElementById(fields[i]).value + '",'
+		}
+		
+
+		$.ajax({
+			type: 'POST',	
+			url: "/email/",
+			data: JSON.parse(s),
+			success: function(result){
+				document.getElementById("email_result").innerHTML = result.result
+				$('#email_submit_btn').removeClass("disabled");
+			}
+		});
+
+		
+}
+
+function msg_submit(){
+
+		$('#msg_submit_btn').addClass("disabled")
+		document.getElementById("msg_result").innerHTML = ""
+
+		hidden_group_msg = document.getElementById("hidden_group_msg").innerText
+		msgdata =  document.getElementById("msgdata").innerText
+
+		$.ajax({
+			type: 'POST',	
+			url: "/message/",
+			data: { "csrfmiddlewaretoken": "{{ csrf_token }}" ,"hidden_group_msg":hidden_group_msg ,"msgdata": msgdata},
+			success: function(result){
+				document.getElementById("msg_result").innerHTML = result.result
+				$('#msg_submit_btn').removeClass("disabled");
+			}
+		});	
+		
+}
+
+
+function call_submit(){
+		
+		$('#call_submit_btn').addClass("disabled")
+		document.getElementById("call_result").innerHTML = ""
+		hidden_group_call = document.getElementById("hidden_group_call").innerText
+		calldata =  document.getElementById("calldata").innerText
+
+		$.ajax({
+			type: 'POST',	
+			url: "/call/",
+			data: { "csrfmiddlewaretoken": '{{ csrf_token }}' , "hidden_group_call":hidden_group_call ,"calldata": calldata},
+			success: function(result){
+				document.getElementById("call_result").innerHTML = result.result
+				$('#call_submit_btn').removeClass("disabled");
+			}
+		});	
+		
+		
+}
+
+
+$(window).on('shown.bs.modal', function() { 
+    document.getElementById("call_result").innerHTML = ""
+    document.getElementById("msg_result").innerHTML = ""
+    document.getElementById("email_result").innerHTML = ""
+    document.getElementById("email_history_result").innerHTML = ""
+    document.getElementById("msg_history_result").innerHTML = ""
+    document.getElementById("call_history_result").innerHTML = ""
+
+});
+
+
+</script>
+
+
+
 <script src="../static/mdl/material.min.js"></script>
 <script src="../static/js/jquery.js"></script>
 <script src="../static/bootstrap-4.0.0-alpha.6-dist/js/bootstrap.min.js"></script> 

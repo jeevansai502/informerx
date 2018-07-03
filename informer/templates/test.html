@@ -1,0 +1,71 @@
+<html>
+<head>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="../static/mdl/material.min.css">
+
+<style>
+.mdl-layout {
+	align-items: center;
+  justify-content: center;
+}
+.mdl-layout__content {
+	flex: none;
+}
+</style>
+</head>
+<body>
+<div class="mdl-layout mdl-js-layout mdl-color--grey-700">
+	<main class="mdl-layout__content">
+		
+		<div class="mdl-card mdl-shadow--6dp">
+			<div class="mdl-card__title mdl-color--brown-400 mdl-color-text--white">
+				<h2 class="mdl-card__title-text">Register</h2>
+			</div>
+            <div class="mdl-card__supporting-text">
+                    <form action="/register/" method="POST">
+
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input" type="text" id="username" name="username" pattern="[a-zA-Z0-9]{6,40}" required/>
+                            <label class="mdl-textfield__label" for="username">Username</label>
+                            <span class="mdl-textfield__error">Username should contain &gt;5 and &lt;41 characters and only alphanumeric characters</span>
+                        </div>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input" type="password" id="password" name="password" pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}$" />
+                            <label class="mdl-textfield__label" for="password">Password</label>
+                            <span class="mdl-textfield__error">Password should contain &gt;7 and &lt;21 characters with atleast one numeric digit,one uppercase letter,one lowercase letter </span>	
+                        </div>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input" type="email" id="email" name="email" />
+                            <label class="mdl-textfield__label" for="email">Email</label>
+                            <span class="mdl-textfield__error">Please enter valid email id</span>
+                        </div>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input" type="text" id="mobile" name="mobile" pattern="[0-9]{10}"/>
+                            <label class="mdl-textfield__label" for="mobile">Mobile</label>		
+                            <span class="mdl-textfield__error">Please enter valid mobile number</span>	
+                        </div>
+                        <!--
+                        <div class="form-control  mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <label for="group">Group:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                            <select class="col-md-4" id="group" name="group">
+                                <option>Email</option>
+                                <option>Phone</option>
+                                <option>Leadership</option>
+                            </select>	
+                        </div>
+                        -->
+
+                <div class="mdl-card__actions mdl-card--border">
+                    <input type="Submit" name="submit" value="Submit" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect"/>
+                </div>
+                </form>
+            </div>
+	
+	</div>
+	</main>
+</div>
+
+<script src="../static/mdl/material.min.js"></script>
+</body>
+</html>

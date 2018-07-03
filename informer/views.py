@@ -5,13 +5,8 @@ import json
 from django.db import connection
 import hashlib
 from django.utils import timezone
-#import sys
-#sys.path.append("informer/src")
-#from email import Email
-#from message import Message
 from django.contrib.auth.signals import user_logged_in
 from django.http import HttpResponseRedirect
-#from informer.src import message,email
 from django.core.mail import EmailMessage
 from django.http import JsonResponse
 import json
@@ -26,6 +21,7 @@ from informer.models import UserSession
 import time
 import base64
 import urllib
+import http.client
 
 # Create your views here.
 class IndexPageView(TemplateView):
@@ -74,17 +70,23 @@ class RegisterPageView(TemplateView):
 		return render(request, 'register.html',context=None)
 
 	def post(self,request):
-		username = request.POST["username"]
-		password = request.POST["password"]
+		username = request.POST["username"].strip()
+		password = request.POST["password"].strip()
+		email = request.POST["email"].strip()
+		mobile = request.POST["mobile"].strip()
+		
+		reg = {}
+		
+		if username == "" or password == "" or email == "" or mobile == "":
+			reg["result"] = "Please fill all details"
+			return render(request, 'register.html',reg)
 
 		hash_pass = hashlib.md5(password.encode())
 		password = hash_pass.hexdigest()
 
-		email = request.POST["email"]
-		mobile = request.POST["mobile"]
 		group = request.POST["group"]
 
-		reg = {}
+
 
 		try:
 			with connection.cursor() as cursor:
@@ -121,9 +123,10 @@ class MainPageView(TemplateView):
 				cursor.execute("SELECT DISTINCT groupname FROM informer_user_details ")
 				groups = json.loads(json.dumps(cursor.fetchall()))
 
-				cursor.execute("SELECT id,what_happened FROM informer_email_history ORDER BY id DESC LIMIT 1")
+				cursor.execute("SELECT id,incident_number,region,status,incident_opened_date FROM informer_email_history ORDER BY id DESC LIMIT 1")
 				rows = json.loads(json.dumps(cursor.fetchall()))
 
+				print (rows)
 				ln = {}
 				ln["groups"] = groups
 				ln["show_email"] = rows
@@ -141,35 +144,94 @@ class MainPageView(TemplateView):
 
 class EmailPageView(TemplateView):  
 	def post(self,request):
-		
 		data = []
-		
-		data.append( ["Communication type: " , request.POST["communication_type"] ,1 , 5 ] )
-		data.append( ["Incident number: " , request.POST["incident_number"] ,1 ,2 ] )
-		data.append( ["Priority: " , request.POST["priority"] ,1 ,2] )
-		data.append( ["Region: " , request.POST["region"] ,1,2])		
-		data.append( ["Status: " , request.POST["status"] ,1,2])		
-		data.append( ["Incident opened: " , request.POST["incident_opened"],1,2] )		
-		data.append( ["Incident duration: " , request.POST["incident_duration"],1,2] )		
-		data.append( ["What happened: " , request.POST["what_happened"] ,1,5])	
-		data.append( ["Business impact: ", request.POST["business_impact"],1,5])	
-		data.append( ["Service impact: " , request.POST["service_impact"],1,5] )		
-		data.append( ["Key groups and people involved: " , request.POST["key_groups_and_people_involved"],1,5] )		
-		data.append( ["What we discovered: " , request.POST["what_we_discovered"],1,5] )	
-		data.append( ["What finally fixed the issue: " , request.POST["what_finally_fixed_the_issue"],1,5] )	
-		data.append( ["Post recovery action items: " , request.POST["post_recovery_action_items"],1,5] )	
-		data.append( ["Design issues: " , request.POST["design_issues"],1,5] )	
-		data.append( ["Chronology of the incident: " , request.POST["chronology_of_the_incident"],1,5] )	
-		data.append( ["Flagged for Reliability: " , request.POST["flagged_for_reliability"],1,2] )	
-		data.append( ["Date and time flagged for reliability: " , request.POST["date_and_time_flagged_for_reliability"],1,2] )	
-		data.append( ["Reliability record number: " , request.POST["reliability_record_number"],1,5] )	
-		data.append( ["Time down: " , request.POST["time_down"],1,2] )	
-		data.append( ["Date and time issue resolved: " , request.POST["date_and_time_issue_resolved"],1,2] )	
-		data.append( ["Did we receive an alert: " , request.POST["did_we_receive_an_alert"],1,2] )	
-		data.append( ["Date and time alert received: " , request.POST["date_and_time_alert_received"],1,2] )
+
+		d = {}
 		
 		group = request.POST["hidden_group_email"]
+		li = [group]
 		
+		data.append( ["Communication type: " , request.POST["communication_type"] ,1 , 5 ] )
+		li.append(request.POST["communication_type"])
+		data.append( ["Incident number: " , request.POST["incident_number"] ,1 ,2 ] )
+		li.append(request.POST["incident_number"])
+		data.append( ["Priority: " , request.POST["priority"] ,1 ,2] )
+		li.append(request.POST["priority"])
+		data.append( ["Region: " , request.POST["region"] ,1,2])	
+		li.append(request.POST["region"])	
+		data.append( ["Status: " , request.POST["status"] ,1,2])	
+		li.append(request.POST["status"])	
+
+		d["incident_opened_date"] = request.POST["incident_opened_date"]
+		li.append(request.POST["incident_opened_date"])
+		d["incident_opened_time"] = request.POST["incident_opened_time"]
+		li.append(request.POST["incident_opened_time"])
+		data.append( ["Incident opened: " , d["incident_opened_date"] + " " + d["incident_opened_time"] ,1,2] )
+
+
+		d["incident_duration_days"] = request.POST["incident_duration_days"]
+		li.append(request.POST["incident_duration_days"])
+		d["incident_duration_hr"] = request.POST["incident_duration_hr"]
+		li.append(request.POST["incident_duration_hr"])
+		d["incident_duration_min"] = request.POST["incident_duration_min"]
+		li.append(request.POST["incident_duration_min"])
+		data.append( ["Incident duration: " , d["incident_duration_days"]+" days "+d["incident_duration_hr"]+" hrs " + d["incident_duration_min"] + " mins" ,1,2] )
+
+		data.append( ["What happened: " , request.POST["what_happened"] ,1,5])	
+		li.append(request.POST["what_happened"])
+		data.append( ["Business impact: ", request.POST["business_impact"],1,5])	
+		li.append(request.POST["business_impact"])
+		data.append( ["Service impact: " , request.POST["service_impact"],1,5] )	
+		li.append(request.POST["service_impact"])	
+		data.append( ["Key groups and people involved: " , request.POST["key_groups_and_people_involved"],1,5] )	
+		li.append(request.POST["key_groups_and_people_involved"])	
+		data.append( ["What we discovered: " , request.POST["what_we_discovered"],1,5] )
+		li.append(request.POST["what_we_discovered"])	
+		data.append( ["What finally fixed the issue: " , request.POST["what_finally_fixed_the_issue"],1,5] )	
+		li.append(request.POST["what_finally_fixed_the_issue"])
+		data.append( ["Post recovery action items: " , request.POST["post_recovery_action_items"],1,5] )	
+		li.append(request.POST["post_recovery_action_items"])
+		data.append( ["Design issues: " , request.POST["design_issues"],1,5] )	
+		li.append(request.POST["design_issues"])
+		data.append( ["Chronology of the incident: " , request.POST["chronology_of_the_incident"],1,5] )	
+		li.append(request.POST["chronology_of_the_incident"])
+		data.append( ["Flagged for Reliability: " , request.POST["flagged_for_reliability"],1,2] )	
+		li.append(request.POST["flagged_for_reliability"])
+
+		d["date_and_time_flagged_for_reliability_date"] = request.POST["date_and_time_flagged_for_reliability_date"]
+		li.append(request.POST["date_and_time_flagged_for_reliability_date"])
+		d["date_and_time_flagged_for_reliability_time"] = request.POST["date_and_time_flagged_for_reliability_time"] 
+		li.append(request.POST["date_and_time_flagged_for_reliability_time"])
+		data.append( ["Date and time flagged for reliability: " , d["date_and_time_flagged_for_reliability_date"] + " " + d["date_and_time_flagged_for_reliability_time"] ,1,2] )	
+		
+
+		data.append( ["Reliability record number: " , request.POST["reliability_record_number"],1,5] )	
+		li.append(request.POST["reliability_record_number"])
+
+		d["time_down_date"] = request.POST["time_down_date"]
+		li.append(request.POST["time_down_date"])
+		d["time_down_time"] = request.POST["time_down_time"] 
+		li.append(request.POST["time_down_time"])
+		data.append( ["Time down: " , d["time_down_date"] + " " + d["time_down_time"] ,1,2] )	
+
+
+		d["date_and_time_issue_resolved_date"] = request.POST["date_and_time_issue_resolved_date"]
+		li.append(request.POST["date_and_time_issue_resolved_date"])
+		d["date_and_time_issue_resolved_time"] = request.POST["date_and_time_issue_resolved_time"] 
+		li.append(request.POST["date_and_time_issue_resolved_time"])
+		data.append( ["Date and time issue resolved: " , d["date_and_time_issue_resolved_date"] + " " +d["date_and_time_issue_resolved_time"],1,2] )	
+		
+
+
+		data.append( ["Did we receive an alert: " , request.POST["did_we_receive_an_alert"],1,2] )	
+		li.append(request.POST["did_we_receive_an_alert"])
+
+		d["date_and_time_alert_received_date"] = request.POST["date_and_time_alert_received_date"]
+		li.append(request.POST["date_and_time_alert_received_date"])
+		d["date_and_time_alert_received_time"] = request.POST["date_and_time_alert_received_time"] 
+		li.append(request.POST["date_and_time_alert_received_time"])
+		data.append( ["Date and time alert received: " , d["date_and_time_alert_received_date"] + " " + d["date_and_time_alert_received_time"],1,2] )
+
 
 		'''
 		m = ""
@@ -195,6 +257,7 @@ class EmailPageView(TemplateView):
 		c = 0
 		
 		for row in data:
+
 			if c == 0:
 				m += '<tr>'
 			
@@ -227,7 +290,7 @@ class EmailPageView(TemplateView):
 			emails_list.append(row[0])
 		
 		me = "ibm2014048@iiita.ac.in"
-		mypass = ""
+		mypass = "Jeevan123"
 		msg = MIMEMultipart('alternative')
 		#msg['Subject'] = "Link"
 		msg['From'] = me
@@ -241,6 +304,10 @@ class EmailPageView(TemplateView):
 			server.starttls()
 			server.login(me, mypass)	
 			server.sendmail(me, emails_list , msg.as_string())
+
+
+			with connection.cursor() as cursor:
+				cursor.execute("INSERT INTO informer_email_history(groupname,communication_type,incident_number,priority,region,status,incident_opened_date,incident_opened_time,incident_duration_days,incident_duration_hr,incident_duration_min,what_happened,business_impact,service_impact,key_groups_and_people_involved,what_we_discovered,what_finally_fixed_the_issue,post_recovery_action_items,design_issues,chronology_of_the_incident,flagged_for_reliability,date_and_time_flagged_for_reliability_date,date_and_time_flagged_for_reliability_time,reliability_record_number,time_down_date,time_down_time,date_and_time_issue_resolved_date,date_and_time_issue_resolved_time,did_we_receive_an_alert,date_and_time_alert_received_date,date_and_time_alert_received_time) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",tuple(li))
 				
 		except Exception as e:
 			return JsonResponse({"result": "Email sending failed"})
@@ -254,26 +321,47 @@ class MsgPageView(TemplateView):
 		data = request.POST["msgdata"]
 		group = request.POST["hidden_group_msg"]
 
-		with connection.cursor() as cursor:
-			cursor.execute("SELECT mobile FROM informer_user_details WHERE groupname=%s",(group,))	
-			numbers = cursor.fetchall()
+
+		try:	
+			with connection.cursor() as cursor:
+				cursor.execute("SELECT mobile FROM informer_user_details WHERE groupname=%s",(group,))	
+				numbers = cursor.fetchall()
+
+				conn = http.client.HTTPConnection("api.msg91.com")
+				payload = "{ \"sender\": \"UPDATE\", \"route\": \"4\", \"country\": \"91\", \"sms\": [ { \"message\": data, \"to\": numbers } ] }"
+				headers = { 'authkey': "223738AYCsB1YjugT95b39e972",'content-type': "application/json"}
+
+				conn.request("POST", "/api/v2/sendsms", payload, headers)
+				res = conn.getresponse()
+				data = res.read()
+				ret = (data.decode("utf-8"))["type"]
+
+				cursor.execute("INSERT INTO informer_message_history(groupname,message) VALUES(%s,%s)",(group,data)) 
+
+		except Exception as e:
+			print (e)
+			t = {}
+			t["result"] = "Message sending failed"
+			return render(request, 'main.html', t)
 		
-		msg_data =  {'apikey': 'WjaljBgU2dg-f4h5q1lJScSjkyIy4SVOJ8mBIS1IS6','numbers': '919873997340','message' : data, 'sender': 'TXTLCL'}
+		#msg_data =  {'apikey': 'WjaljBgU2dg-f4h5q1lJScSjkyIy4SVOJ8mBIS1IS6','numbers': '919873997340','message' : data, 'sender': 'TXTLCL'}
 		
 		
-		f = urllib.request.urlopen('https://api.textlocal.in/send/?'+ urllib.parse.urlencode(msg_data)) 
+		#f = urllib.request.urlopen('https://api.textlocal.in/send/?'+ urllib.parse.urlencode(msg_data)) 
 		
 
 		#r = requests.post("https://api.textlocal.in/send/", data=msg_data)
 		#print (r.url)
 		#print (r.status_code)
-		#if ret == True:
-		t = {}
-			#t["result"] = "Message sent successfully"
+		if ret == "success":
+			t = {}
+			t["result"] = "Message sent successfully"
+		else:
+			t = {}
+			t["result"] = "Message sending failed"
+
 		return render(request, 'main.html', t)
-		#else:
-		#	t = {}
-		#	t["result"] = "Message sending failed"
+
 		#	return render(request, 'main.html', t)
 				
 class CallPageView(TemplateView):  
