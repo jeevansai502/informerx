@@ -251,7 +251,17 @@ class EmailPageView(TemplateView):
 </table>
 		
 		'''
-		m = '<html><head><style>table,td,th{ border: 1px solid black; } tr:hover {background-color: #f5f5f5;} table{ border-collapse: collapse; width: 100%; } td,th{ height: 50px;padding: 10px; } th {background-color: red;color: white;}</style></head><body><div style="overflow-x:auto;"><table>'
+		m = '<html><head><style>table,td,th{ border: 1px solid black; } tr:hover {background-color: #f5f5f5;} table{ border-collapse: collapse; width: 100%; } td,th{ height: 50px;padding: 10px; }'
+
+
+		if request.POST["status"] == "New":
+			m += 'th {background-color: red;color: white;}</style></head><body><div style="overflow-x:auto;"><table>'
+		elif request.POST["status"] == "In progress":
+			m += 'th {background-color: yellow;color: white;}</style></head><body><div style="overflow-x:auto;"><table>'
+		elif request.POST["status"] == "Resolved":
+			m += 'th {background-color: green;color: white;}</style></head><body><div style="overflow-x:auto;"><table>'
+
+
 		m += '<tr><th scope="col" colspan="6">J&J Major Incident Communication </th></tr>'
 				
 		c = 0
