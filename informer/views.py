@@ -262,7 +262,7 @@ class EmailPageView(TemplateView):
 			m += 'th {background-color: green;color: white;}</style></head><body><div style="overflow-x:auto;"><table>'
 
 
-		m += '<tr><th scope="col" colspan="6">J&J Major Incident Communication </th></tr>'
+		m += '<tr><th scope="col" colspan="6"><h4>J&J Major Incident Communication </h4></th></tr>'
 				
 		c = 0
 		
