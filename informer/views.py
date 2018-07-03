@@ -126,7 +126,6 @@ class MainPageView(TemplateView):
 				cursor.execute("SELECT id,incident_number,region,status,incident_opened_date FROM informer_email_history ORDER BY id DESC LIMIT 10")
 				rows = json.loads(json.dumps(cursor.fetchall()))
 
-				print (rows)
 				ln = {}
 				ln["groups"] = groups
 				ln["show_email"] = rows
@@ -334,29 +333,36 @@ class MsgPageView(TemplateView):
 	def post(self,request):
 		data = request.POST["msgdata"]
 		group = request.POST["hidden_group_msg"]
-
+		t = {}
 
 		try:	
 			with connection.cursor() as cursor:
 				cursor.execute("SELECT mobile FROM informer_user_details WHERE groupname=%s",(group,))	
 				numbers = cursor.fetchall()
+				num = []
+				for i in numbers:
+					num.append('\"' + i[0] + '\"')
 
 				conn = http.client.HTTPConnection("api.msg91.com")
-				payload = "{ \"sender\": \"UPDATE\", \"route\": \"4\", \"country\": \"91\", \"sms\": [ { \"message\": data, \"to\": numbers } ] }"
+				payload = "{ \"sender\": \"UPDATE\", \"route\": \"4\", \"country\": \"91\", \"sms\": [ { \"message\": \"data\", \"to\": [\"9490787967\"] } ] }"
 				headers = { 'authkey': "223738AYCsB1YjugT95b39e972",'content-type': "application/json"}
-
 				conn.request("POST", "/api/v2/sendsms", payload, headers)
 				res = conn.getresponse()
 				data = res.read()
-				ret = (data.decode("utf-8"))["type"]
+				ret = json.loads( data.decode('utf-8') )["type"]
+				if ret == "success":
+					t["result"] = "Message sent successfully"
+				else:
+					t["result"] = "Message sending failed"
+					return JsonResponse(t)
 
 				cursor.execute("INSERT INTO informer_message_history(groupname,message) VALUES(%s,%s)",(group,data)) 
-
+				
 		except Exception as e:
-			print (e)
 			t = {}
 			t["result"] = "Message sending failed"
-			return render(request, 'main.html', t)
+			return JsonResponse(t)
+
 		
 		#msg_data =  {'apikey': 'WjaljBgU2dg-f4h5q1lJScSjkyIy4SVOJ8mBIS1IS6','numbers': '919873997340','message' : data, 'sender': 'TXTLCL'}
 		
@@ -367,14 +373,8 @@ class MsgPageView(TemplateView):
 		#r = requests.post("https://api.textlocal.in/send/", data=msg_data)
 		#print (r.url)
 		#print (r.status_code)
-		if ret == "success":
-			t = {}
-			t["result"] = "Message sent successfully"
-		else:
-			t = {}
-			t["result"] = "Message sending failed"
-
-		return render(request, 'main.html', t)
+		
+		return JsonResponse(t)
 
 		#	return render(request, 'main.html', t)
 				

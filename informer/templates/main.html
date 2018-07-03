@@ -301,7 +301,7 @@
 <div class="modal fade" id="msgModal" tabindex="-1" role="dialog" aria-labelledby="msgModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
             
-            <form action="/messagehistory/" method="POST">
+            <form action="/message/" method="POST">
 		    {% csrf_token %}
 		    <div class="modal-content">
 		    <div id="msg_history_result"></div>
@@ -572,7 +572,7 @@
 		      		</div>
 		      		<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-					<button type="button" class="btn btn-primary" id="msg_submit_btn" name="msg_submit_btn" onclick="msg_submit">Send</button>
+					<button type="button" class="btn btn-primary" id="msg_submit_btn" name="msg_submit_btn" onclick="msg_submit()">Send</button>
 		      		</div>
 		    		</div>
 		    
@@ -599,7 +599,7 @@
 		      		</div>
 		      		<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-					<button type="Submit" class="btn btn-primary" id="call_submit_btn" name="call_submit_btn" onclick="call_submit">Send</button>
+					<button type="Submit" class="btn btn-primary" id="call_submit_btn" name="call_submit_btn" onclick="call_submit()">Send</button>
 		      		</div>
 		    		</div>
 		    
@@ -846,7 +846,7 @@ function msg_history_submit(){
 		$('#msg_history_submit_btn').addClass("disabled")
 		document.getElementById("msg_history_result").innerHTML = ""
 
-		hidden_group_msg = document.getElementById("history_group_msg").innerText
+		hidden_group_msg = document.getElementById("history_group_msg").value
 		msgdata =  document.getElementById("history_msgdata").innerText
 
 		$.ajax({
@@ -867,7 +867,7 @@ function call_history_submit(){
 
 		$('#calll_history_submit_btn').addClass("disabled")
 		document.getElementById("call_history_result").innerHTML = ""
-		hidden_group_call = document.getElementById("history_group_call").innerText
+		hidden_group_call = document.getElementById("history_group_call").value
 		calldata =  document.getElementById("history_calldata").innerText
 
 		$.ajax({
@@ -927,13 +927,13 @@ function msg_submit(){
 		$('#msg_submit_btn').addClass("disabled")
 		document.getElementById("msg_result").innerHTML = ""
 
-		hidden_group_msg = document.getElementById("hidden_group_msg").innerText
+		group_msg = document.getElementById("hidden_group_msg").value
 		msgdata =  document.getElementById("msgdata").innerText
 
 		$.ajax({
 			type: 'POST',	
 			url: "/message/",
-			data: { "csrfmiddlewaretoken": "{{ csrf_token }}" ,"hidden_group_msg":hidden_group_msg ,"msgdata": msgdata},
+			data: { "csrfmiddlewaretoken": "{{ csrf_token }}" ,"hidden_group_msg":group_msg ,"msgdata": msgdata},
 			success: function(result){
 				document.getElementById("msg_result").innerHTML = result.result
 				$('#msg_submit_btn').removeClass("disabled");
@@ -947,7 +947,7 @@ function call_submit(){
 		
 		$('#call_submit_btn').addClass("disabled")
 		document.getElementById("call_result").innerHTML = ""
-		hidden_group_call = document.getElementById("hidden_group_call").innerText
+		hidden_group_call = document.getElementById("hidden_group_call").value
 		calldata =  document.getElementById("calldata").innerText
 
 		$.ajax({
