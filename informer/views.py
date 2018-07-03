@@ -334,22 +334,26 @@ class MsgPageView(TemplateView):
 		data = request.POST["msgdata"]
 		group = request.POST["hidden_group_msg"]
 		t = {}
-
 		try:	
 			with connection.cursor() as cursor:
 				cursor.execute("SELECT mobile FROM informer_user_details WHERE groupname=%s",(group,))	
 				numbers = cursor.fetchall()
 				num = []
 				for i in numbers:
-					num.append('\"' + i[0] + '\"')
+					num.append(i[0])
 
 				conn = http.client.HTTPConnection("api.msg91.com")
-				payload = "{ \"sender\": \"UPDATE\", \"route\": \"4\", \"country\": \"91\", \"sms\": [ { \"message\": \"data\", \"to\": [\"9490787967\"] } ] }"
-				headers = { 'authkey': "223738AYCsB1YjugT95b39e972",'content-type': "application/json"}
+				print ("B")
+				payload = "{ \"sender\": \"UPDATE\", \"route\": \"4\", \"country\": \"91\", \"sms\": [ { \"message\":" + data + ", \"to\":" + str(num) + "} ] }"
+				print (payload)	
+				print ("C")
+				headers = { 'authkey': "223766ARJVWnp0yL5b39fdb9",'content-type': "application/json"}
 				conn.request("POST", "/api/v2/sendsms", payload, headers)
 				res = conn.getresponse()
 				data = res.read()
 				ret = json.loads( data.decode('utf-8') )["type"]
+				print (data)
+				print (payload)
 				if ret == "success":
 					t["result"] = "Message sent successfully"
 				else:
