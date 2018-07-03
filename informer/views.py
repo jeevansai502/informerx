@@ -123,7 +123,7 @@ class MainPageView(TemplateView):
 				cursor.execute("SELECT DISTINCT groupname FROM informer_user_details ")
 				groups = json.loads(json.dumps(cursor.fetchall()))
 
-				cursor.execute("SELECT id,incident_number,region,status,incident_opened_date FROM informer_email_history ORDER BY id DESC LIMIT 1")
+				cursor.execute("SELECT id,incident_number,region,status,incident_opened_date FROM informer_email_history ORDER BY id DESC LIMIT 10")
 				rows = json.loads(json.dumps(cursor.fetchall()))
 
 				print (rows)
@@ -132,12 +132,16 @@ class MainPageView(TemplateView):
 				ln["show_email"] = rows
 				ln["email_load_more"] = len(rows)
 
-				cursor.execute("SELECT id,message FROM informer_message_history ORDER BY id DESC LIMIT 1")
+				cursor.execute("SELECT id,message FROM informer_message_history ORDER BY id DESC LIMIT 10")
 				rows = json.loads(json.dumps(cursor.fetchall()))
 
 				ln["show_message"] = rows
 				ln["msg_load_more"] = len(rows)
 				return	render(request, 'main.html',ln)
+
+				
+
+
 
 
 
@@ -255,11 +259,11 @@ class EmailPageView(TemplateView):
 
 
 		if request.POST["status"] == "New":
-			m += 'th {background-color: red;color: white;}</style></head><body><div style="overflow-x:auto;"><table>'
+			m += 'th {background-color: red;color: white;font-size: 150%;}</style></head><body><div style="overflow-x:auto;"><table>'
 		elif request.POST["status"] == "In progress":
-			m += 'th {background-color: yellow;color: white;}</style></head><body><div style="overflow-x:auto;"><table>'
+			m += 'th {background-color: yellow;color: white;font-size: 150%;}</style></head><body><div style="overflow-x:auto;"><table>'
 		elif request.POST["status"] == "Resolved":
-			m += 'th {background-color: green;color: white;}</style></head><body><div style="overflow-x:auto;"><table>'
+			m += 'th {background-color: green;color: white;font-size: 150%;}</style></head><body><div style="overflow-x:auto;"><table>'
 
 
 		m += '<tr><th scope="col" colspan="6"><h4>J&J Major Incident Communication </h4></th></tr>'
