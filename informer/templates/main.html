@@ -847,7 +847,7 @@ function msg_history_submit(){
 		document.getElementById("msg_history_result").innerHTML = ""
 
 		hidden_group_msg = document.getElementById("history_group_msg").value
-		msgdata =  document.getElementById("history_msgdata").innerText
+		msgdata =  document.getElementById("history_msgdata").value
 
 		$.ajax({
 			type: 'POST',	
@@ -868,7 +868,7 @@ function call_history_submit(){
 		$('#calll_history_submit_btn').addClass("disabled")
 		document.getElementById("call_history_result").innerHTML = ""
 		hidden_group_call = document.getElementById("history_group_call").value
-		calldata =  document.getElementById("history_calldata").innerText
+		calldata =  document.getElementById("history_calldata").value
 
 		$.ajax({
 			type: 'POST',	
@@ -928,7 +928,7 @@ function msg_submit(){
 		document.getElementById("msg_result").innerHTML = ""
 
 		group_msg = document.getElementById("hidden_group_msg").value
-		msgdata =  document.getElementById("msgdata").innerText
+		msgdata =  document.getElementById("msgdata").value
 
 		$.ajax({
 			type: 'POST',	
@@ -948,7 +948,7 @@ function call_submit(){
 		$('#call_submit_btn').addClass("disabled")
 		document.getElementById("call_result").innerHTML = ""
 		hidden_group_call = document.getElementById("hidden_group_call").value
-		calldata =  document.getElementById("calldata").innerText
+		calldata =  document.getElementById("calldata").value
 
 		$.ajax({
 			type: 'POST',	

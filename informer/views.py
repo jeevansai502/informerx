@@ -22,6 +22,7 @@ import time
 import base64
 import urllib
 import http.client
+import re
 
 # Create your views here.
 class IndexPageView(TemplateView):
@@ -331,8 +332,9 @@ class EmailPageView(TemplateView):
 
 class MsgPageView(TemplateView):  
 	def post(self,request):
-		data = request.POST["msgdata"]
+		msgdata = request.POST["msgdata"] + " "
 		group = request.POST["hidden_group_msg"]
+
 		t = {}
 		try:	
 			with connection.cursor() as cursor:
@@ -343,17 +345,30 @@ class MsgPageView(TemplateView):
 					num.append(i[0])
 
 				conn = http.client.HTTPConnection("api.msg91.com")
-				print ("B")
-				payload = "{ \"sender\": \"UPDATE\", \"route\": \"4\", \"country\": \"91\", \"sms\": [ { \"message\":" + data + ", \"to\":" + str(num) + "} ] }"
-				print (payload)	
-				print ("C")
+				#payload = '{ "sender": "UPDATE", "route": "4", "country": "91", "sms": [ { "message": "data" , "to": ["9490787967"]} ] }'
+				#payload = re.escape(str(payload))
+
+				#payload = '{ "sender": "UPDATE", "route": "4", "country": "91","sms": [ { "message": "' + data  +'" , "to":' + num + '} ] }'
+				payload = {}
+				payload["sender"] = "UPDATE"	
+				payload["route"] = "4"
+				payload["country"] = "91"
+				payload["sms"] = []
+				payload["sms"].append({})
+				(payload["sms"][0])["message"] = msgdata
+				(payload["sms"][0])["to"] = num
+				payload = json.dumps(payload)
+
+				#payload = '{\"sender\": \"UPDATE\", \"country\": \"91\", \"route\": \"4\", \"sms\": [{\"message\": \"\", \"to\": [\"9490787967\"]}]}'
+				#print (payload)
+
 				headers = { 'authkey': "223766ARJVWnp0yL5b39fdb9",'content-type': "application/json"}
-				conn.request("POST", "/api/v2/sendsms", payload, headers)
+				conn.request("POST", "/api/v2/sendsms", str(payload), headers)
 				res = conn.getresponse()
 				data = res.read()
 				ret = json.loads( data.decode('utf-8') )["type"]
-				print (data)
-				print (payload)
+				#print (data)
+				
 				if ret == "success":
 					t["result"] = "Message sent successfully"
 				else:
