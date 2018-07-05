@@ -310,8 +310,8 @@ class EmailPageView(TemplateView):
 		for row in emails:
 			emails_list.append(row[0])
 		
-		me = "ibm2014048@iiita.ac.in"
-		mypass = "Jeevan123"
+		me = "sharath.rk@gmail.com"
+		mypass = "Sharath@123"
 		msg = MIMEMultipart('alternative')
 		#msg['Subject'] = "Link"
 		msg['From'] = me
