@@ -41,29 +41,32 @@ class LoginPageView(TemplateView):
 		def user_logged_in_handler():
 			UserSession.objects.get_or_create( time = timezone.now() , username = email , session_id = request.session.session_key)
 
-		with connection.cursor() as cursor:
-			original = cursor.execute("SELECT password FROM informer_user_login_details WHERE email=%s",(email,))
-			corr = original.fetchone()
-			
-			if corr == None:
-				ln = {}
-				ln["result"] = "Wrong credentials"
-				return render(request, 'login.html',ln)
-			
-			hash_pass = hashlib.md5(password.encode())
-			password = hash_pass.hexdigest()
-			if corr[0] == password:
+		try:
+			with connection.cursor() as cursor:
+				original = cursor.execute("SELECT password FROM informer_user_login_details WHERE email=%s",(email,))
+				corr = original.fetchone()
+				
+				if corr == None:
+					ln = {}
+					ln["result"] = "Wrong credentials"
+					return render(request, 'login.html',ln)
+				
+				hash_pass = hashlib.md5(password.encode())
+				password = hash_pass.hexdigest()
+				if corr[0] == password:
 
-				if not request.session.session_key:
-					request.session.save()
+					if not request.session.session_key:
+						request.session.save()
 
-				user_logged_in_handler()
-				#user_logged_in.connect(user_logged_in_handler)
-				return HttpResponseRedirect("/dashboard/")
-			else:
-				ln = {}
-				ln["result"] = "Wrong credentials"
-				return render(request, 'login.html',ln)
+					user_logged_in_handler()
+					#user_logged_in.connect(user_logged_in_handler)
+					return HttpResponseRedirect("/dashboard/")
+				else:
+					ln = {}
+					ln["result"] = "Wrong credentials"
+					return render(request, 'login.html',ln)
+		except Exception as e:
+			print (e)
 
 
 class RegisterPageView(TemplateView):
@@ -116,7 +119,11 @@ class LogoutPageView(TemplateView):
 class MainPageView(TemplateView):
 	def get(self,request):
 
-		user_sessions = UserSession.objects.filter(session_id = request.session.session_key)
+		try:
+			user_sessions = UserSession.objects.filter(session_id = request.session.session_key)
+		except:
+			return render(request, 'login.html')
+
 		if len(user_sessions) == 0:
 			return render(request, 'login.html')
 		else:
