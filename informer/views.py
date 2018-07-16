@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 import os.path
 import json
-from django.db import connection
+from django.db import connection,transaction
 import hashlib
 from django.utils import timezone
 from django.contrib.auth.signals import user_logged_in
@@ -18,6 +18,7 @@ from email.mime.text import MIMEText
 import smtplib
 import os
 from informer.models import UserSession
+from informer.models import User_Groups,User_Login_Details,User_Details
 import time
 import base64
 import urllib
@@ -88,14 +89,21 @@ class RegisterPageView(TemplateView):
 		hash_pass = hashlib.md5(password.encode())
 		password = hash_pass.hexdigest()
 
-		group = request.POST["group"]
-
-
-
+		grouplist = request.POST.getlist("group")
+		objs = []
+		
+		for gp in grouplist:
+			objs.append( User_Groups(email=email,groupname=gp) )
+		
 		try:
-			with connection.cursor() as cursor:
-				cursor.execute("INSERT INTO informer_user_login_details(email,password) VALUES (%s,%s)",(email,password))
-				cursor.execute("INSERT INTO informer_user_details(email,username,mobile,groupname) VALUES (%s,%s,%s,%s)",(email,username,mobile,group))
+			#cursor = connection.cursor()
+			with transaction.atomic():	
+				#cursor.execute("INSERT INTO informer_user_login_details(email,password) VALUES (%s,%s)",(email,password))
+				#cursor.execute("INSERT INTO informer_user_details(email,username,mobile) VALUES (%s,%s,%s)",(email,username,mobile))
+				User_Login_Details.objects.bulk_create( [User_Login_Details(email=email,password=password)] )
+				User_Details.objects.bulk_create( [User_Details(email=email,username=username,mobile=mobile)] )
+				User_Groups.objects.bulk_create(objs)		
+						
 
 			reg["result"] = "Signup success"
 			return render(request, 'login.html',reg)
@@ -128,11 +136,18 @@ class MainPageView(TemplateView):
 			return render(request, 'login.html')
 		else:
 			with connection.cursor() as cursor:
-				cursor.execute("SELECT DISTINCT groupname FROM informer_user_details ")
-				groups = json.loads(json.dumps(cursor.fetchall()))
+				#cursor.execute("SELECT DISTINCT groupname FROM informer_user_groups ")
+				#print (cursor.fetchall())
+				#groups = json.loads(json.dumps(cursor.fetchall()))
+				#print (groups)
 
 				cursor.execute("SELECT id,incident_number,region,status,incident_opened_date FROM informer_email_history ORDER BY id DESC LIMIT 10")
 				rows = json.loads(json.dumps(cursor.fetchall()))
+
+				groups = ["Email","Phone","Leadership"]
+				#print (groups)
+				#groups = json.loads(json.dumps(groups))
+				#print (groups)	
 
 				ln = {}
 				ln["groups"] = groups
@@ -145,10 +160,6 @@ class MainPageView(TemplateView):
 				ln["show_message"] = rows
 				ln["msg_load_more"] = len(rows)
 				return	render(request, 'main.html',ln)
-
-				
-
-
 
 
 
@@ -303,14 +314,14 @@ class EmailPageView(TemplateView):
 		m += "</table></div></body></html>"
 		
 		with connection.cursor() as cursor:
-			cursor.execute("SELECT email FROM informer_user_details WHERE groupname=%s",(group,))	
+			cursor.execute("SELECT email FROM informer_user_groups WHERE groupname=%s",(group,))	
 			emails = cursor.fetchall()
 		
 		emails_list = []
 		for row in emails:
 			emails_list.append(row[0])
 		
-		me = "sharath.rk@gmail.com"
+		me = "support@updateops.com"
 		mypass = "Sharath@123"
 		msg = MIMEMultipart('alternative')
 		#msg['Subject'] = "Link"
@@ -321,8 +332,8 @@ class EmailPageView(TemplateView):
 		msg.attach(part)
 		
 		try:
-			server = smtplib.SMTP('smtp.gmail.com', 587)
-			server.starttls()
+			server = smtplib.SMTP_SSL('smtpout.secureserver.net', 465)
+			#server.starttls()
 			server.login(me, mypass)	
 			server.sendmail(me, emails_list , msg.as_string())
 
@@ -331,8 +342,9 @@ class EmailPageView(TemplateView):
 				cursor.execute("INSERT INTO informer_email_history(groupname,communication_type,incident_number,priority,region,status,incident_opened_date,incident_opened_time,incident_duration_days,incident_duration_hr,incident_duration_min,what_happened,business_impact,service_impact,key_groups_and_people_involved,what_we_discovered,what_finally_fixed_the_issue,post_recovery_action_items,design_issues,chronology_of_the_incident,flagged_for_reliability,date_and_time_flagged_for_reliability_date,date_and_time_flagged_for_reliability_time,reliability_record_number,time_down_date,time_down_time,date_and_time_issue_resolved_date,date_and_time_issue_resolved_time,did_we_receive_an_alert,date_and_time_alert_received_date,date_and_time_alert_received_time) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",tuple(li))
 				
 		except Exception as e:
+			#print (e)
 			return JsonResponse({"result": "Email sending failed"})
-
+ 
 		return JsonResponse({"result": "Email sent successfully"})
 		
 
@@ -345,7 +357,7 @@ class MsgPageView(TemplateView):
 		t = {}
 		try:	
 			with connection.cursor() as cursor:
-				cursor.execute("SELECT mobile FROM informer_user_details WHERE groupname=%s",(group,))	
+				cursor.execute("SELECT D.mobile FROM informer_user_details D inner join informer_user_groups G WHERE G.groupname=%s",(group,))	
 				numbers = cursor.fetchall()
 				num = []
 				for i in numbers:

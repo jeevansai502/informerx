@@ -11,6 +11,9 @@ class User_Details(models.Model):
     email = models.CharField(max_length=256,primary_key=True)
     username = models.CharField(max_length=30)
     mobile = models.CharField(max_length=20)
+
+class User_Groups(models.Model):
+    email = models.CharField(max_length=256)
     groupname = models.CharField(max_length=256)
 
 class Email_History(models.Model):

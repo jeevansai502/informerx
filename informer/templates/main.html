@@ -52,10 +52,8 @@
     <span class="mdl-layout-title"></span>
     <nav class="mdl-navigation">
       
-      {% for group in groups %}
-      {% for val in group %}
+      {% for val in groups %}
       <a class="mdl-navigation__link" id="{{ val }}" name="{{ val }}" href="" onclick="add_group('{{ val }}')" data-toggle="modal" data-target="#msgemailcallModal">{{ val }}</a>
-      {% endfor %}
       {% endfor %}
       
       <div id="usersmenu">
